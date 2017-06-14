@@ -3,12 +3,8 @@ package data;
 import neural.TrainingSet;
 
 import java.io.*;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Scanner;
+
 
 public class ReadWriteFile {
 
@@ -30,8 +26,7 @@ public class ReadWriteFile {
         ArrayList<ArrayList<Integer>> inputs = new ArrayList<>();
 
         try {
-            InputStream in = ReadWriteFile.class.getClass().getResourceAsStream(filename);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            BufferedReader reader = new BufferedReader(new FileReader("resources" + filename));
             String line;
             while ((line = reader.readLine()) != null) {
                 ArrayList<Integer> input = new ArrayList<>();
