@@ -13,7 +13,7 @@ open class CustomPanel(_width: Int,
 
     init {
         setSize(_width, _height)
-        
+
         preferredSize = Dimension(width, height)
         background = Color.WHITE
 
@@ -23,8 +23,8 @@ open class CustomPanel(_width: Int,
     private fun generateSections() {
         sections = ArrayList<Section>()
 
-        for (i in 0..count - 1) {
-            for (j in 0..count - 1) {
+        for (j in 0..count - 1) {
+            for (i in 0..count - 1) {
                 sections.add(Section(i * (width / count), j * (height / count), width / count, height / count))
             }
         }
@@ -77,9 +77,9 @@ open class CustomPanel(_width: Int,
         repaint()
     }
 
-    fun drawLetter(pixels: ArrayList<Int>) {
+    fun draw(pixels: IntArray) {
         for (i in pixels.indices) {
-            sections[i].isActive = pixels[i] == 1
+            sections[i].isActive = pixels[i] > 0
         }
 
         repaint()

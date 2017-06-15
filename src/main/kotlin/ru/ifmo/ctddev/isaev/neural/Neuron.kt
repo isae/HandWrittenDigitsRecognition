@@ -1,6 +1,6 @@
 package ru.ifmo.ctddev.isaev.neural
 
-import ru.ifmo.ctddev.isaev.utils.MathUtils
+import ru.ifmo.ctddev.isaev.sigmoidValue
 import java.util.*
 
 class Neuron {
@@ -36,7 +36,7 @@ class Neuron {
 
         sum += BIAS * biasWeight
 
-        return MathUtils.sigmoidValue(sum)
+        return sigmoidValue(sum)
     }
 
     fun adjustWeights(delta: Double) {

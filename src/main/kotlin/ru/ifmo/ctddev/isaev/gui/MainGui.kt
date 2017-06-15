@@ -1,35 +1,30 @@
 package ru.ifmo.ctddev.isaev.gui
 
-import ru.ifmo.ctddev.isaev.data.GoodOutputs
-import ru.ifmo.ctddev.isaev.data.GoodPixels
-import ru.ifmo.ctddev.isaev.data.ReadWriteFile
+import ru.ifmo.ctddev.isaev.TrainObject
 import ru.ifmo.ctddev.isaev.gui.components.CustomPanel
 import ru.ifmo.ctddev.isaev.gui.components.DrawingPanel
 import ru.ifmo.ctddev.isaev.neural.Train
-import ru.ifmo.ctddev.isaev.neural.TrainingSet
 import java.awt.*
 import javax.swing.*
 
 class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networks") {
 
-    private val RESOLUTION = 20
+    private val RESOLUTION = 28
 
     private val networkTrainer: Train = Train()
 
-    private var mainPanel: JPanel? = null
-    private var drawingPanel: DrawingPanel? = null
-    private var resultPanel: CustomPanel? = null
+    private var mainPanel: JPanel = JPanel()
+    private var drawingPanel: DrawingPanel = DrawingPanel(400, 400, RESOLUTION)
+    private var resultPanel: CustomPanel = CustomPanel(400, 400, RESOLUTION)
 
-    private var clearButton: JButton? = null
-    private var trainButton: JButton? = null
-    private var transformButton: JButton? = null
-    private var helpButton: JButton? = null
-    private var trainNetworkButton: JButton? = null
-    private var drawLetterButton: JButton? = null
-    private var trainingSetsAmount: JTextField? = null
-    private var drawLetterCombo: JComboBox<String>? = null
-    private var trainAsCombo: JComboBox<String>? = null
-    private var outputTextArea: JTextArea? = null
+    private var clearButton: JButton = JButton("Clear")
+    private var trainButton: JButton = JButton("Train")
+    private var transformButton: JButton = JButton(">>")
+    private var helpButton: JButton = JButton("HELP")
+    private var trainNetworkButton: JButton = JButton("Train X times:")
+    private var drawLetterButton: JButton = JButton("Draw:")
+    private var trainingSetsAmount: JTextField = JFormattedTextField("5000")
+    private var outputTextArea: JTextArea = JTextArea()
 
     init {
 
@@ -46,11 +41,15 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
         size = Dimension(1260, 500)
         setLocationRelativeTo(null)
         isResizable = false
+        drawTrainObject(networkTrainer.trainData[239])
+    }
+
+    private fun drawTrainObject(trainObject: TrainObject) {
+        drawingPanel.draw(trainObject.data)
     }
 
     private fun setMainPanel() {
-        mainPanel = JPanel()
-        mainPanel!!.background = Color.LIGHT_GRAY
+        mainPanel.background = Color.LIGHT_GRAY
         contentPane = mainPanel
     }
 
@@ -59,16 +58,10 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
         panel.background = Color.LIGHT_GRAY
         panel.preferredSize = Dimension(410, 440)
 
-        drawLetterButton = JButton("Draw:")
-        drawLetterCombo = JComboBox(arrayOf("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Z", "Y"))
-
-        drawingPanel = DrawingPanel(400, 400, RESOLUTION)
-
         panel.add(drawLetterButton)
-        panel.add(drawLetterCombo)
         panel.add(drawingPanel)
 
-        mainPanel!!.add(panel)
+        mainPanel.add(panel)
     }
 
     private fun setCenterArea() {
@@ -79,75 +72,61 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
         gbc.gridwidth = GridBagConstraints.REMAINDER
         gbc.anchor = GridBagConstraints.CENTER
 
-        trainNetworkButton = JButton("Train X times:")
-        trainingSetsAmount = JFormattedTextField("5000")
-        trainingSetsAmount!!.maximumSize = Dimension(100, 30)
-        trainingSetsAmount!!.preferredSize = Dimension(100, 30)
-        centerPanel.add(trainNetworkButton!!, gbc)
-        centerPanel.add(trainingSetsAmount!!, gbc)
+        trainingSetsAmount.maximumSize = Dimension(100, 30)
+        trainingSetsAmount.preferredSize = Dimension(100, 30)
+        centerPanel.add(trainNetworkButton, gbc)
+        centerPanel.add(trainingSetsAmount, gbc)
 
         centerPanel.add(Box.createVerticalStrut(50))
 
-        helpButton = JButton("HELP")
-        centerPanel.add(helpButton!!, gbc)
+        centerPanel.add(helpButton, gbc)
 
         centerPanel.add(Box.createVerticalStrut(50))
 
-        transformButton = JButton(">>")
-        centerPanel.add(transformButton!!, gbc)
+        centerPanel.add(transformButton, gbc)
 
         centerPanel.add(Box.createVerticalStrut(50))
 
-        clearButton = JButton("Clear")
-        clearButton!!.alignmentX = Component.CENTER_ALIGNMENT
-        centerPanel.add(clearButton!!, gbc)
+        clearButton.alignmentX = Component.CENTER_ALIGNMENT
+        centerPanel.add(clearButton, gbc)
 
         centerPanel.add(Box.createVerticalStrut(50))
 
         centerPanel.add(JLabel("Train as:", SwingConstants.CENTER), gbc)
 
-        trainAsCombo = JComboBox(arrayOf("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Z", "Y"))
-        trainAsCombo!!.alignmentX = Component.CENTER_ALIGNMENT
-        trainAsCombo!!.maximumSize = Dimension(trainAsCombo!!.preferredSize.width, 30)
-        centerPanel.add(trainAsCombo!!, gbc)
+        centerPanel.add(trainButton, gbc)
 
-        trainButton = JButton("Train")
-        centerPanel.add(trainButton!!, gbc)
-
-        mainPanel!!.add(centerPanel)
+        mainPanel.add(centerPanel)
     }
 
     private fun setRightSide() {
         val panel = JPanel()
         panel.background = Color.LIGHT_GRAY
         panel.border = BorderFactory.createEmptyBorder(30, 0, 0, 0)
-        resultPanel = CustomPanel(400, 400, RESOLUTION)
         panel.add(resultPanel)
-        mainPanel!!.add(panel)
+        mainPanel.add(panel)
     }
 
     private fun setOutputPanel() {
         val outputPanel = JPanel()
         outputPanel.preferredSize = Dimension(200, 430)
 
-        outputTextArea = JTextArea()
-        outputTextArea!!.preferredSize = Dimension(200, 430)
+        outputTextArea.preferredSize = Dimension(200, 430)
         outputPanel.add(outputTextArea)
 
-        mainPanel!!.add(outputPanel)
+        mainPanel.add(outputPanel)
     }
 
     private fun setOnClicks() {
-        clearButton!!.addActionListener { drawingPanel!!.clear() }
+        clearButton.addActionListener { drawingPanel.clear() }
 
-        trainButton!!.addActionListener {
-            val letter = trainAsCombo!!.selectedItem as String
-            networkTrainer.addTrainingSet(TrainingSet(drawingPanel!!.pixels, GoodOutputs.instance.getGoodOutput(letter)))
-            ReadWriteFile.saveToFile(drawingPanel!!.pixels, letter)
+        trainButton.addActionListener {
+            //networkTrainer.addTrainingSet(TrainingSet(drawingPanel.pixels, GoodOutputs.instance.getGoodOutput(letter)))
+            //ReadWriteFile.saveToFile(drawingPanel.pixels, letter)
         }
 
-        transformButton!!.addActionListener { e ->
-            networkTrainer.setInputs(drawingPanel!!.pixels)
+        transformButton.addActionListener { e ->
+            networkTrainer.setInputs(drawingPanel.pixels)
 
             val outputs = networkTrainer.outputs
             var index = 0
@@ -158,12 +137,11 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
 
             updateTextArea()
 
-            trainAsCombo!!.selectedIndex = index
-            resultPanel!!.drawLetter(GoodPixels.instance.getGoodPixels(index))
+            //resultPanel.draw(GoodPixels.instance.getGoodPixels(index))
         }
 
 
-        helpButton!!.addActionListener { e ->
+        helpButton.addActionListener { e ->
             val sb = StringBuilder()
             sb.append("Train network X times after you start the program. Recommended 5000 times\n")
             sb.append("\n")
@@ -175,10 +153,10 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
             JOptionPane.showMessageDialog(this, sb.toString(), "Help", JOptionPane.PLAIN_MESSAGE)
         }
 
-        trainNetworkButton!!.addActionListener { e ->
+        trainNetworkButton.addActionListener { e ->
             var number = 0
             try {
-                number = Integer.parseInt(trainingSetsAmount!!.text)
+                number = Integer.parseInt(trainingSetsAmount.text)
             } catch (x: Exception) {
                 JOptionPane.showMessageDialog(this, "Wrong input", "ERROR", JOptionPane.PLAIN_MESSAGE)
             }
@@ -186,16 +164,9 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
             networkTrainer.train(number.toLong())
         }
 
-        drawLetterButton!!.addActionListener { e ->
-            val letter = drawLetterCombo!!.selectedItem as String
-            val goodPixels = GoodPixels.instance.getGoodPixels(letter)
-            drawingPanel!!.drawLetter(goodPixels)
-        }
-
-        drawLetterCombo!!.addActionListener { e ->
-            val letter = drawLetterCombo!!.selectedItem as String
-            val goodPixels = GoodPixels.instance.getGoodPixels(letter)
-            drawingPanel!!.drawLetter(goodPixels)
+        drawLetterButton.addActionListener { e ->
+            //val goodPixels = GoodPixels.instance.getGoodPixels(letter)
+            //drawingPanel.draw(goodPixels)
         }
 
     }
@@ -219,14 +190,10 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
             sb.append("\t " + value)
             sb.append("\n")
         }
-        outputTextArea!!.text = sb.toString()
+        outputTextArea.text = sb.toString()
     }
+}
 
-    companion object {
-
-        @JvmStatic fun main(args: Array<String>) {
-            MainGui()
-        }
-    }
-
+fun main(args: Array<String>) {
+    MainGui()
 }
