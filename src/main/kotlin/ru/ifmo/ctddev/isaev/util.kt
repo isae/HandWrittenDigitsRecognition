@@ -30,3 +30,15 @@ fun sigmoid(arg: Matrix): Matrix {
 fun sigmoidValue(arg: Double): Double {
     return 1 / (1 + Math.exp((-arg)))
 }
+
+fun indMax(arr: DoubleArray): Int {
+    var max = java.lang.Double.MIN_VALUE
+    var result = -1
+    for (i in arr.indices) {
+        if (arr[i] > max) {
+            max = arr[i]
+            result = i
+        }
+    }
+    return result
+}

@@ -1,6 +1,7 @@
 package ru.ifmo.ctddev.isaev
 
 import ru.ifmo.ctddev.isaev.data.Matrix
+import java.util.*
 
 /**
  * @author iisaev
@@ -29,8 +30,8 @@ fun nnCostFunction(nn_params: DoubleArray,
 
     // You need to return the following variables correctly
     var J = 0.0
-    val Theta1_grad = zeros(size(Theta1));
-    val Theta2_grad = zeros(size(Theta2));
+    var Theta1_grad = zeros(size(Theta1));
+    var Theta2_grad = zeros(size(Theta2));
 
     // ====================== YOUR CODE HERE ======================
     // Instructions: You should complete the code by working through the
@@ -69,11 +70,11 @@ fun nnCostFunction(nn_params: DoubleArray,
 
     val a1 = X.prependWithRowOfOne()
 
-    var z2 = a1 * Theta1.t()
+    val z2 = a1 * Theta1.t()
     var a2 = sigmoid(z2)
     a2 = a2.prependWithRowOfOne()
 
-    var z3 = a2 * Theta2.t()
+    val z3 = a2 * Theta2.t()
     var a3 = sigmoid(z3)
     val hThetaX = a3
 
@@ -83,10 +84,10 @@ fun nnCostFunction(nn_params: DoubleArray,
         yVec.data[i][y[i]] = 1.0
     }
 
-    J = 1 / m * sum(-1 * pointMul(yVec, log(hThetaX)) - pointMul((1 - yVec), log(1 - hThetaX)))
+    J = 1 / m * sum(-1 * yVec.pointMul(log(hThetaX)) - (1 - yVec).pointMul(log(1 - hThetaX)))
 
     val regularParam = (
-            sum(pointPow(trimFirstRow(Theta1), 2)) + sum(pointPow(trimFirstRow(Theta2), 2))
+            sum(pointPow(Theta1.trimFirstRow(), 2)) + sum(pointPow(Theta2.trimFirstRow(), 2))
             ) * (lambda / (2 * m))
 
     J += regularParam
@@ -95,68 +96,143 @@ fun nnCostFunction(nn_params: DoubleArray,
 
 
     for (t in 0..m) {
-        // For the input layer, where l=1:
-        val a1 = [1; X(t, :).t()];
+        a3 = predict(X[t], Theta1, Theta2)
 
-        // For the hidden layers, where l=2:
-        z2 = Theta1 * a1;
-        val a2 = [1; sigmoid(z2)];
-
-        z3 = Theta2 * a2
-        a3 = sigmoid(z3)
-
-        val yy = ([1:num_labels] == y(t)).t();
+        val yy = Matrix.fromColumn(
+                IntRange(0, num_labels - 1)
+                        .map { it == y[t] }
+                        .map { if (it) 1.0 else 0.0 }
+                        .toDoubleArray()
+        )
         // For the delta values:
-        val delta_3 = a3 - yy;
+        val delta_3 = a3 - yy
 
-        val delta_2 = (Theta2.t() * delta_3).* [1; sigmoidGradient(z2)]
-        val delta_2 = delta_2(2:end) // Taking of the bias row
+        val delta_2 = (Theta2.t() * delta_3)
+                .pointMul(sigmoidGradient(z2).prependWithRowOfOne())
+                .trimFirstRow()
 
         // delta_1 is not calculated because we do not associate error with the input
 
         // Big delta update
-        Theta1_grad = Theta1_grad + delta_2 * a1.t()
-        Theta2_grad = Theta2_grad + delta_3 * a2.t()
+        Theta1_grad += delta_2 * a1.t()
+        Theta2_grad += delta_3 * a2.t()
     }
 
-    val Theta1_grad = (1 / m) * Theta1_grad + (lambda / m) * [zeros(size(Theta1, 1), 1) Theta1 (:, 2:end)]
-    val Theta2_grad = (1 / m) * Theta2_grad + (lambda / m) * [zeros(size(Theta2, 1), 1) Theta2 (:, 2:end)]
+    Theta1_grad = (1 / m) * Theta1_grad + (lambda / m) * Theta1.trimFirstRow().prependWithRowOfZeros()
+    Theta2_grad = (1 / m) * Theta2_grad + (lambda / m) * Theta2.trimFirstRow().prependWithRowOfZeros()
 
-
-    // -------------------------------------------------------------
-
-    // =========================================================================
 
     // Unroll gradients
-    val grad = [Theta1_grad(:) ; Theta2_grad(:)];
+    val grad = pack(Theta1_grad, Theta2_grad);
     return CostGradientTuple(J, grad)
 
 }
 
-fun pointPow(trimFirstRow: Matrix, i: Int): Matrix {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+ fun predict(obj: DoubleArray, Theta1: Matrix, Theta2: Matrix): Matrix {
+    // For the input layer, where l=1:
+    val a1 = Matrix.fromColumn(obj).prependWithRowOfOne().t()
+
+    // For the hidden layers, where l=2:
+    val z2 = Theta1 * a1;
+    val a2 = sigmoid(z2).prependWithRowOfOne()
+
+    val z3 = Theta2 * a2
+    val a3 = sigmoid(z3)
+    return a3
 }
 
-private operator fun Matrix.minus(pointMul: Matrix): Matrix {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+fun pack(m1: Matrix, m2: Matrix): DoubleArray {
+    val result = DoubleArray(m1.rowCount * m1.columnCount + m2.rowCount + m2.columnCount)
+    var pos = 0
+    m1.data.forEach {
+        System.arraycopy(it, 0, result, pos, m1.columnCount)
+        pos += m1.columnCount
+    }
+    m2.data.forEach {
+        System.arraycopy(it, 0, result, pos, m2.columnCount)
+        pos += m2.columnCount
+    }
+    return result
+}
+
+private operator fun Double.times(matrix: Matrix): Matrix {
+    return matrix.apply { this * it }
+}
+
+private fun prependWithRowOf(m: Matrix, value: Double): Matrix {
+    val result = Matrix(m.rowCount + 1, m.columnCount)
+    val ones = DoubleArray(m.columnCount)
+    Arrays.fill(ones, value)
+    result.data[0] = ones
+    for (i in 1..m.rowCount + 1) {
+        result.data[i] = m.data[i - 1]
+    }
+    return result
+}
+
+private fun Matrix.prependWithRowOfZeros(): Matrix {
+    return prependWithRowOf(this, 0.0)
+}
+
+fun Matrix.prependWithRowOfOne(): Matrix {
+    return prependWithRowOf(this, 1.0)
+}
+
+private fun zipWith(m1: Matrix, m2: Matrix, op: (Double, Double) -> Double): Matrix {
+    if (m1.rowCount != m2.rowCount || m1.columnCount != m2.columnCount) {
+        throw IllegalArgumentException("Cannot sum matrices")
+    }
+    return Matrix(
+            m1.data.zip(m2.data).map {
+                it.first.zip(it.second)
+                        .map { op(it.first, it.second) }
+                        .toDoubleArray()
+            }.toTypedArray()
+    )
+}
+
+private operator fun Matrix.plus(other: Matrix): Matrix {
+    return zipWith(this, other, Double::plus)
+}
+
+private fun Matrix.trimFirstRow(): Matrix {
+    return Matrix(
+            this.data.toList()
+                    .subList(1, this.data.size)
+                    .toTypedArray()
+    )
+}
+
+fun sigmoidGradient(z: Matrix): Matrix {
+    return sigmoid(z).pointMul((1 - sigmoid(z)))
+}
+
+fun pointPow(trimFirstRow: Matrix, i: Int): Matrix {
+    return trimFirstRow.apply { Math.pow(it, i.toDouble()) }
+}
+
+private operator fun Matrix.minus(other: Matrix): Matrix {
+    return zipWith(this, other, Double::minus)
 }
 
 private operator fun Int.times(pointMul: Matrix): Matrix {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    return pointMul.apply { this * it }
 }
 
-fun sum(any: Matrix): Double {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+fun sum(matrix: Matrix): Double {
+    return matrix.data.map { it.sum() }.sum()
 }
 
-fun pointMul(matrix: Matrix, log: Matrix): Matrix {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+fun Matrix.pointMul(other: Matrix): Matrix {
+    return zipWith(this, other, Double::times)
 }
 
-fun log(hThetaX: Matrix): Matrix {}
+fun log(matrix: Matrix): Matrix {
+    return matrix.apply { Math.log(it) }
+}
 
 private operator fun Int.minus(matrix: Matrix): Matrix {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    return matrix.apply { this - it }
 }
 
 fun zeros(size: Pair<Int, Int>): Matrix {
@@ -170,13 +246,15 @@ private fun DoubleArray.subArray(from: Int, to: Int): DoubleArray {
 }
 
 private fun reshape(arr: DoubleArray, rowCount: Int, colCount: Int): Matrix {
-
+    return Matrix(
+            (0..rowCount)
+                    .mapTo(ArrayList<DoubleArray>()) {
+                        arr.subArray(it * colCount, (it + 1) * colCount)
+                    }
+                    .toTypedArray()
+    )
 }
 
 private fun size(matr: Matrix): Pair<Int, Int> {
     return Pair(matr.rowCount, matr.columnCount)
-}
-
-fun trimFirstRow(matr: Matrix): Matrix {
-    return Theta1(:, 2:end)
 }

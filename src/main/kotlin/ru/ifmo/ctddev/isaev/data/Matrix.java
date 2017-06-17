@@ -2,7 +2,6 @@ package ru.ifmo.ctddev.isaev.data;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.Random;
 import java.util.function.Function;
 
@@ -20,38 +19,12 @@ public class Matrix {
 
     private static final Random RANDOM = new Random();
 
+    @NotNull
     private final double[][] data;
 
     private final int rowCount;
 
     private final int columnCount;
-
-    private boolean valid = true;
-
-    @NotNull
-    public double[] get(int i) {
-        return data[i];
-    }
-
-    @NotNull
-    public Matrix times(@NotNull Matrix toMultiply) {
-        return null;
-    }
-
-    @NotNull
-    public Matrix t() {
-        return null;
-    }
-
-    private void checkIsValid() {
-        if (!valid) {
-            throw new IllegalStateException("Invalid matrix");
-        }
-    }
-
-    private void invalidate() {
-        valid = false;
-    }
 
     public Matrix(double[][] data) {
         this.data = data;
@@ -98,43 +71,17 @@ public class Matrix {
         return data;
     }
 
-    public Matrix prependWithRowOfOne() {
-        try (ValidTest ignored = new ValidTest()) {
-            Matrix result = new Matrix(rowCount + 1, columnCount);
-            double[] ones = new double[columnCount];
-            Arrays.fill(ones, 1);
-            result.getData()[0] = ones;
-            range(1, rowCount + 1).forEach(i ->
-                    result.getData()[i] = data[i - 1]
-            );
-            return result;
-        }
-    }
-
     public Matrix apply(Function<Double, Double> function) {
         throw new UnsupportedOperationException();
     }
 
     public Matrix fillRandom() {
-        try (ValidTest ignored = new ValidTest()) {
-            Matrix result = new Matrix(data);
-            range(0, rowCount)
-                    .forEach(i -> range(0, columnCount)
-                            .forEach(j -> {
-                                result.data[i][j] = RANDOM.nextDouble() * 2 * EPSILON_INIT - EPSILON_INIT;
-                            }));
-            return result;
-        }
-    }
-
-    private class ValidTest implements AutoCloseable {
-        ValidTest() {
-            checkIsValid();
-        }
-
-        @Override
-        public void close() {
-            invalidate();
-        }
+        Matrix result = new Matrix(data);
+        range(0, rowCount)
+                .forEach(i -> range(0, columnCount)
+                        .forEach(j -> {
+                            result.data[i][j] = RANDOM.nextDouble() * 2 * EPSILON_INIT - EPSILON_INIT;
+                        }));
+        return result;
     }
 }
