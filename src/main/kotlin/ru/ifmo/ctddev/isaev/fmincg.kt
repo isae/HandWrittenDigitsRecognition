@@ -1,26 +1,5 @@
 package ru.ifmo.ctddev.isaev
 
-import java.io.BufferedReader
-import java.io.FileReader
-import kotlin.streams.toList
-
-data class CostGradientTuple(val cost: Double, val gradient: DoubleArray)
-data class TrainObject(val data: IntArray, val clazz: Int)
-
-fun readDataSet(): List<TrainObject> {
-    return BufferedReader(FileReader("./resources/train.csv")).use {
-        it.lines().skip(1)
-                .map { it.split(',') }
-                .map { it.map { it.toInt() } }
-                .map { TrainObject(it.subList(1, it.size).toIntArray(), it[0]) }
-                .toList()
-    }
-}
-
-fun sigmoidValue(arg: Double): Double {
-    return 1 / (1 + Math.exp((-arg)))
-}
-
 // extrapolate maximum 3 times the current bracket.
 // this can be set higher for bigger extrapolations
 var EXT = 3.0
@@ -36,9 +15,9 @@ private val MAX = 20
 // maximum allowed slope ratio
 private val RATIO = 100.0
 
-fun minimize(f: (DoubleArray) -> CostGradientTuple,
-             theta: DoubleArray,
-             length: Int): DoubleArray {
+fun fmincg(f: (DoubleArray) -> CostGradientTuple,
+           theta: DoubleArray,
+           length: Int): DoubleArray {
     var input = theta
     var M = 0
     var i = 0 // zero the run length counter

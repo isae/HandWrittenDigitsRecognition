@@ -1,5 +1,7 @@
 package ru.ifmo.ctddev.isaev.data;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Arrays;
 import java.util.Random;
 import java.util.function.Function;
@@ -25,6 +27,21 @@ public class Matrix {
     private final int columnCount;
 
     private boolean valid = true;
+
+    @NotNull
+    public double[] get(int i) {
+        return data[i];
+    }
+
+    @NotNull
+    public Matrix times(@NotNull Matrix toMultiply) {
+        return null;
+    }
+
+    @NotNull
+    public Matrix t() {
+        return null;
+    }
 
     private void checkIsValid() {
         if (!valid) {
@@ -92,10 +109,6 @@ public class Matrix {
             );
             return result;
         }
-    }
-
-    public Matrix multiply(Matrix toMultiply) {
-        throw new UnsupportedOperationException();
     }
 
     public Matrix apply(Function<Double, Double> function) {
