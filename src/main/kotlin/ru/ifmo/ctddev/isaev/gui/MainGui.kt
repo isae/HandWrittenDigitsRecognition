@@ -1,6 +1,6 @@
 package ru.ifmo.ctddev.isaev.gui
 
-import ru.ifmo.ctddev.isaev.TrainObject
+import ru.ifmo.ctddev.isaev.algorithm.TrainObject
 import ru.ifmo.ctddev.isaev.gui.components.CustomPanel
 import ru.ifmo.ctddev.isaev.gui.components.DrawingPanel
 import ru.ifmo.ctddev.isaev.neural.Train

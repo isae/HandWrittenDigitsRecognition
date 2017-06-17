@@ -1,4 +1,4 @@
-import ru.ifmo.ctddev.isaev.*
+import ru.ifmo.ctddev.isaev.algorithm.*
 import ru.ifmo.ctddev.isaev.data.Matrix
 
 class NeuralNetwork(private val inputLayerSize: Int,

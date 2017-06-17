@@ -1,6 +1,5 @@
-package ru.ifmo.ctddev.isaev
+package ru.ifmo.ctddev.isaev.algorithm
 
-import ru.ifmo.ctddev.isaev.data.Matrix
 import java.util.*
 
 /**
@@ -98,7 +97,7 @@ fun nnCostFunction(nn_params: DoubleArray,
     for (t in 0..m) {
         a3 = predict(X[t], Theta1, Theta2)
 
-        val yy = Matrix.fromColumn(
+        val yy = Matrix.Companion.fromColumn(
                 IntRange(0, num_labels - 1)
                         .map { it == y[t] }
                         .map { if (it) 1.0 else 0.0 }
@@ -128,9 +127,9 @@ fun nnCostFunction(nn_params: DoubleArray,
 
 }
 
- fun predict(obj: DoubleArray, Theta1: Matrix, Theta2: Matrix): Matrix {
+fun predict(obj: DoubleArray, Theta1: Matrix, Theta2: Matrix): Matrix {
     // For the input layer, where l=1:
-    val a1 = Matrix.fromColumn(obj).prependWithRowOfOne().t()
+    val a1 = Matrix.Companion.fromColumn(obj).prependWithRowOfOne().t()
 
     // For the hidden layers, where l=2:
     val z2 = Theta1 * a1;
@@ -162,7 +161,7 @@ private operator fun Double.times(matrix: Matrix): Matrix {
 private fun prependWithRowOf(m: Matrix, value: Double): Matrix {
     val result = Matrix(m.rowCount + 1, m.columnCount)
     val ones = DoubleArray(m.columnCount)
-    Arrays.fill(ones, value)
+    java.util.Arrays.fill(ones, value)
     result.data[0] = ones
     for (i in 1..m.rowCount + 1) {
         result.data[i] = m.data[i - 1]

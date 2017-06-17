@@ -1,4 +1,4 @@
-package ru.ifmo.ctddev.isaev
+package ru.ifmo.ctddev.isaev.algorithm
 
 // extrapolate maximum 3 times the current bracket.
 // this can be set higher for bigger extrapolations
