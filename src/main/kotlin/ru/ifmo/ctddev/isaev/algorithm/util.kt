@@ -39,3 +39,11 @@ fun indMax(arr: DoubleArray): Int {
     }
     return result
 }
+
+fun fromColumn(column: DoubleArray): Matrix {
+    val result = Matrix(column.size, 1)
+    for (i in column.indices) {
+        result.data[i][0] = column[i]
+    }
+    return result
+}

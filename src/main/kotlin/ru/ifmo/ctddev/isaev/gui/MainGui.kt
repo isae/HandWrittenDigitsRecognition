@@ -1,17 +1,17 @@
 package ru.ifmo.ctddev.isaev.gui
 
+import ru.ifmo.ctddev.isaev.NeuralNetwork
 import ru.ifmo.ctddev.isaev.algorithm.TrainObject
+import ru.ifmo.ctddev.isaev.algorithm.readDataSet
 import ru.ifmo.ctddev.isaev.gui.components.CustomPanel
 import ru.ifmo.ctddev.isaev.gui.components.DrawingPanel
-import ru.ifmo.ctddev.isaev.neural.Train
 import java.awt.*
 import javax.swing.*
 
 class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networks") {
 
     private val RESOLUTION = 28
-
-    private val networkTrainer: Train = Train()
+    private val network = NeuralNetwork(784, 50, 10, readDataSet())
 
     private var mainPanel: JPanel = JPanel()
     private var drawingPanel: DrawingPanel = DrawingPanel(400, 400, RESOLUTION)
@@ -41,11 +41,12 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
         size = Dimension(1260, 500)
         setLocationRelativeTo(null)
         isResizable = false
-        drawTrainObject(networkTrainer.trainData[239])
+        //drawTrainObject(network.trainData[239])
     }
 
     private fun drawTrainObject(trainObject: TrainObject) {
-        drawingPanel.draw(trainObject.data)
+        val avg = trainObject.data.average()
+        drawingPanel.draw(trainObject.data.map { if (it > avg) it.toInt() else 0 }.toIntArray())
     }
 
     private fun setMainPanel() {
@@ -121,19 +122,15 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
         clearButton.addActionListener { drawingPanel.clear() }
 
         trainButton.addActionListener {
-            //networkTrainer.addTrainingSet(TrainingSet(drawingPanel.pixels, GoodOutputs.instance.getGoodOutput(letter)))
+            //network.addTrainingSet(TrainingSet(drawingPanel.pixels, GoodOutputs.instance.getGoodOutput(letter)))
             //ReadWriteFile.saveToFile(drawingPanel.pixels, letter)
         }
 
         transformButton.addActionListener { e ->
-            networkTrainer.setInputs(drawingPanel.pixels)
+           // network.setInputs(drawingPanel.pixels)
 
-            val outputs = networkTrainer.outputs
+            //val outputs = network.outputs
             var index = 0
-            outputs.indices
-                    .asSequence()
-                    .filter { outputs[it] > outputs[index] }
-                    .forEach { index = it }
 
             updateTextArea()
 
@@ -161,7 +158,7 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
                 JOptionPane.showMessageDialog(this, "Wrong input", "ERROR", JOptionPane.PLAIN_MESSAGE)
             }
 
-            networkTrainer.train(number.toLong())
+            //network.train(number.toLong())
         }
 
         drawLetterButton.addActionListener { e ->
@@ -173,23 +170,23 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
 
     private fun updateTextArea() {
         val sb = StringBuilder()
-        val outputs = networkTrainer.outputs
-        for (i in outputs.indices) {
-            val letterValue = i + 65
-            sb.append(letterValue.toChar())
-            var value = outputs[i]
-            if (value < 0.01)
-                value = 0.0
-            if (value > 0.99)
-                value = 1.0
-
-            value *= 1000.0
-            val x = value.toInt()
-            value = x / 1000.0
-
-            sb.append("\t " + value)
-            sb.append("\n")
-        }
+        /* val outputs = network.outputs
+         for (i in outputs.indices) {
+             val letterValue = i + 65
+             sb.append(letterValue.toChar())
+             var value = outputs[i]
+             if (value < 0.01)
+                 value = 0.0
+             if (value > 0.99)
+                 value = 1.0
+ 
+             value *= 1000.0
+             val x = value.toInt()
+             value = x / 1000.0
+ 
+             sb.append("\t " + value)
+             sb.append("\n")
+         }*/
         outputTextArea.text = sb.toString()
     }
 }

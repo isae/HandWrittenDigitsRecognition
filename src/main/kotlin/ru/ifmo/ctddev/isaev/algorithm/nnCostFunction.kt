@@ -97,7 +97,7 @@ fun nnCostFunction(nn_params: DoubleArray,
     for (t in 0..m) {
         a3 = predict(X[t], Theta1, Theta2)
 
-        val yy = Matrix.Companion.fromColumn(
+        val yy = fromColumn(
                 IntRange(0, num_labels - 1)
                         .map { it == y[t] }
                         .map { if (it) 1.0 else 0.0 }
@@ -129,7 +129,7 @@ fun nnCostFunction(nn_params: DoubleArray,
 
 fun predict(obj: DoubleArray, Theta1: Matrix, Theta2: Matrix): Matrix {
     // For the input layer, where l=1:
-    val a1 = Matrix.Companion.fromColumn(obj).prependWithRowOfOne().t()
+    val a1 = fromColumn(obj).prependWithRowOfOne().t()
 
     // For the hidden layers, where l=2:
     val z2 = Theta1 * a1;
