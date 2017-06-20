@@ -16,11 +16,14 @@ class NeuralNetwork(private val inputLayerSize: Int,
     private val gradientSteps = 50
 
     init {
+        println("Started training data initialization")
         val X = Matrix(trainingData.map { it.data }.toTypedArray())
         val y = trainingData.map { it.clazz }.toTypedArray()
+        println("Finished training data initialization")
         val costFunction = { params: DoubleArray ->
             nnCostFunction(params, inputLayerSize, hiddenLayerSize, outputLayerSize, X, y, lambda)
         }
+        println("Started optimization process")
         fmincg(costFunction, pack(theta1, theta2), gradientSteps)
     }
 

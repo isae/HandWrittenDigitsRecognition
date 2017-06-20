@@ -5,10 +5,13 @@ import ru.ifmo.ctddev.isaev.algorithm.TrainObject
 import ru.ifmo.ctddev.isaev.algorithm.readDataSet
 import ru.ifmo.ctddev.isaev.gui.components.CustomPanel
 import ru.ifmo.ctddev.isaev.gui.components.DrawingPanel
-import java.awt.*
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
 import javax.swing.*
 
-class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networks") {
+class MainGui : JFrame("Digit recognition using neural network") {
 
     private val RESOLUTION = 28
     private val network = NeuralNetwork(784, 50, 10, readDataSet())
@@ -21,9 +24,9 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
     private var trainButton: JButton = JButton("Train")
     private var transformButton: JButton = JButton(">>")
     private var helpButton: JButton = JButton("HELP")
-    private var trainNetworkButton: JButton = JButton("Train X times:")
+    private var recognizeButton: JButton = JButton("Recognize")
     private var drawLetterButton: JButton = JButton("Draw:")
-    private var trainingSetsAmount: JTextField = JFormattedTextField("5000")
+    private var resultField: JTextField = JFormattedTextField("5000")
     private var outputTextArea: JTextArea = JTextArea()
 
     init {
@@ -31,14 +34,14 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
         setMainPanel()
         setLeftSide()
         setCenterArea()
-        setRightSide()
-        setOutputPanel()
+        //setRightSide()
+        //setOutputPanel()
 
         setOnClicks()
 
         defaultCloseOperation = JFrame.DISPOSE_ON_CLOSE
         isVisible = true
-        size = Dimension(1260, 500)
+        size = Dimension(630, 500)
         setLocationRelativeTo(null)
         isResizable = false
         //drawTrainObject(network.trainData[239])
@@ -59,7 +62,7 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
         panel.background = Color.LIGHT_GRAY
         panel.preferredSize = Dimension(410, 440)
 
-        panel.add(drawLetterButton)
+        //panel.add(drawLetterButton)
         panel.add(drawingPanel)
 
         mainPanel.add(panel)
@@ -73,15 +76,15 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
         gbc.gridwidth = GridBagConstraints.REMAINDER
         gbc.anchor = GridBagConstraints.CENTER
 
-        trainingSetsAmount.maximumSize = Dimension(100, 30)
-        trainingSetsAmount.preferredSize = Dimension(100, 30)
-        centerPanel.add(trainNetworkButton, gbc)
-        centerPanel.add(trainingSetsAmount, gbc)
+        resultField.maximumSize = Dimension(100, 30)
+        resultField.preferredSize = Dimension(100, 30)
+        centerPanel.add(recognizeButton, gbc)
+        centerPanel.add(resultField, gbc)
 
         centerPanel.add(Box.createVerticalStrut(50))
 
-        centerPanel.add(helpButton, gbc)
-
+        centerPanel.add(clearButton, gbc)
+/*
         centerPanel.add(Box.createVerticalStrut(50))
 
         centerPanel.add(transformButton, gbc)
@@ -96,7 +99,7 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
         centerPanel.add(JLabel("Train as:", SwingConstants.CENTER), gbc)
 
         centerPanel.add(trainButton, gbc)
-
+*/
         mainPanel.add(centerPanel)
     }
 
@@ -127,7 +130,7 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
         }
 
         transformButton.addActionListener { e ->
-           // network.setInputs(drawingPanel.pixels)
+            // network.setInputs(drawingPanel.pixels)
 
             //val outputs = network.outputs
             var index = 0
@@ -150,18 +153,15 @@ class MainGui : JFrame("Drawing letters using ru.ifmo.ctddev.isaev.neural networ
             JOptionPane.showMessageDialog(this, sb.toString(), "Help", JOptionPane.PLAIN_MESSAGE)
         }
 
-        trainNetworkButton.addActionListener { e ->
-            var number = 0
-            try {
-                number = Integer.parseInt(trainingSetsAmount.text)
-            } catch (x: Exception) {
-                JOptionPane.showMessageDialog(this, "Wrong input", "ERROR", JOptionPane.PLAIN_MESSAGE)
-            }
-
-            //network.train(number.toLong())
+        recognizeButton.addActionListener {
+            val pixels = drawingPanel.pixels
+                    .map { it*255 }
+                    .map { it.toDouble() }
+                    .toDoubleArray()
+            resultField.text = "Recognized digit: ${network.predictResult(pixels)}"
         }
 
-        drawLetterButton.addActionListener { e ->
+        drawLetterButton.addActionListener {
             //val goodPixels = GoodPixels.instance.getGoodPixels(letter)
             //drawingPanel.draw(goodPixels)
         }

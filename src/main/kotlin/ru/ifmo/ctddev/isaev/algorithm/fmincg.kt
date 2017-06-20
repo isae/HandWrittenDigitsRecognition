@@ -15,6 +15,8 @@ private val MAX = 20
 // maximum allowed slope ratio
 private val RATIO = 100.0
 
+private var counter = 1
+
 fun fmincg(f: (DoubleArray) -> CostGradientTuple,
            theta: DoubleArray,
            length: Int): DoubleArray {
@@ -61,6 +63,7 @@ fun fmincg(f: (DoubleArray) -> CostGradientTuple,
         var limit = -1.0
 
         while (true) {
+            println("\tStarted iteration ${++counter}")
             while (((f2 > f1 + z1 * RHO * d1) || (d2 > -SIG * d1)) && (M > 0)) {
                 // tighten the bracket
                 limit = z1
@@ -94,6 +97,7 @@ fun fmincg(f: (DoubleArray) -> CostGradientTuple,
                 d2 = df2.dot(s)
                 // z3 is now relative to the location of z2
                 z3 -= z2
+                println("\tFinished iteration ${counter}")
             }
             if (f2 > f1 + z1 * RHO * d1 || d2 > -SIG * d1) {
                 break // this is a failure
@@ -142,6 +146,7 @@ fun fmincg(f: (DoubleArray) -> CostGradientTuple,
             M -= 1
             i += (if (length < 0) 1 else 0) // count epochs?!
             d2 = df2.dot(s)
+            println("Finished iteration ${counter++}")
         }// end of line search
 
         var tmp: DoubleArray

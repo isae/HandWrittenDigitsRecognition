@@ -10,13 +10,24 @@ data class CostGradientTuple(val cost: Double, val gradient: DoubleArray)
 
 data class TrainObject(val data: DoubleArray, val clazz: Int)
 
-fun readDataSet(): List<ru.ifmo.ctddev.isaev.algorithm.TrainObject> {
-    return java.io.BufferedReader(java.io.FileReader("./resources/train_small.csv")).use {
-        it.lines().skip(1)
-                .map { it.split(',') }
-                .map { it.map { it.toDouble() } }
-                .map { ru.ifmo.ctddev.isaev.algorithm.TrainObject(it.subList(1, it.size).toDoubleArray(), it[0].toInt()) }
-                .toList()
+private var counter = 0
+
+fun readDataSet(): List<TrainObject> {
+    println("Started reading of dataset")
+    try {
+        return java.io.BufferedReader(java.io.FileReader("./resources/train.csv")).use {
+            it.lines().skip(1)
+                    .map { it.split(',') }
+                    .map { it.map { it.toDouble() } }
+                    .map {
+                        println("Read row ${++counter}")
+                        TrainObject(it.subList(1, it.size).toDoubleArray(), it[0].toInt())
+                    }
+                    .toList()
+
+        }
+    } finally {
+        println("Finished reading of dataset")
     }
 }
 
@@ -55,8 +66,8 @@ fun fromRow(row: DoubleArray): Matrix {
 
 fun randomMatrix(rowCount: Int, columnCount: Int): Matrix {
     val result = Matrix(rowCount, columnCount)
-    for (i in 0..rowCount-1) {
-        for (j in 0..columnCount-1) {
+    for (i in 0..rowCount - 1) {
+        for (j in 0..columnCount - 1) {
             result[i][j] = RANDOM.nextDouble() * 2.0 * EPSILON_INIT - EPSILON_INIT
         }
     }
