@@ -38,20 +38,10 @@ class Matrix {
 
     fun apply(function: (Double) -> Double): Matrix {
         val dataCopy = data.copyOf()
-        for (i in 0..data.size)
-            for (j in 0..this[i].size)
+        for (i in 0..data.size - 1)
+            for (j in 0..this[i].size - 1)
                 dataCopy[i][j] = function(dataCopy[i][j])
         return Matrix(dataCopy)
-    }
-
-    fun fillRandom(): Matrix {
-        val result = Matrix(data)
-        for (i in 0..rowCount) {
-            for (j in 0..columnCount) {
-                result[i][j] = RANDOM.nextDouble() * 2.0 * EPSILON_INIT - EPSILON_INIT
-            }
-        }
-        return result
     }
 
     operator fun times(other: Matrix): Matrix {
@@ -59,9 +49,9 @@ class Matrix {
             throw IllegalStateException("Invalid matrices to multiply")
         }
         val result = Matrix(rowCount, other.columnCount)
-        for (i in 0..rowCount) {
-            for (j in 0..other.columnCount) {
-                val sum = (0..columnCount)
+        for (i in 0..rowCount - 1) {
+            for (j in 0..other.columnCount - 1) {
+                val sum = (0..columnCount - 1)
                         .sumByDouble { data[i][it] * other.data[it][j] }
                 result[i][j] = sum
             }
@@ -71,8 +61,8 @@ class Matrix {
 
     fun t(): Matrix {
         val result = Matrix(columnCount, rowCount)
-        for (i in 0..rowCount) {
-            for (j in 0..columnCount) {
+        for (i in 0..rowCount - 1) {
+            for (j in 0..columnCount - 1) {
                 result[j][i] = this[i][j]
             }
         }
@@ -81,5 +71,14 @@ class Matrix {
 
     operator fun get(t: Int): DoubleArray {
         return data[t]
+    }
+
+    fun prependWithColumnOf(d: Double): Matrix {
+        val result = Matrix(rowCount, columnCount + 1)
+        for (i in 0..rowCount - 1) {
+            result[i][0] = d;
+            System.arraycopy(this[i], 0, result[i], 1, columnCount)
+        }
+        return result
     }
 }

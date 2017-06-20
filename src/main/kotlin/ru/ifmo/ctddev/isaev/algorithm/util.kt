@@ -47,3 +47,14 @@ fun fromColumn(column: DoubleArray): Matrix {
     }
     return result
 }
+
+
+fun randomMatrix(rowCount: Int, columnCount: Int): Matrix {
+    val result = Matrix(rowCount, columnCount)
+    for (i in 0..rowCount-1) {
+        for (j in 0..columnCount-1) {
+            result[i][j] = RANDOM.nextDouble() * 2.0 * EPSILON_INIT - EPSILON_INIT
+        }
+    }
+    return result
+}

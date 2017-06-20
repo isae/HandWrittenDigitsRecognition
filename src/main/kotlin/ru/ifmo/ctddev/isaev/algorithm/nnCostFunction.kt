@@ -20,7 +20,7 @@ fun nnCostFunction(nn_params: DoubleArray,
     )
 
     val Theta2 = reshape(nn_params.subArray(
-            (1 + (hidden_layer_size * (input_layer_size + 1))), nn_params.size),
+            (hidden_layer_size * (input_layer_size + 1)), nn_params.size),
             num_labels, (hidden_layer_size + 1)
     )
 
@@ -67,11 +67,11 @@ fun nnCostFunction(nn_params: DoubleArray,
 
     //// Part 1 implementation
 
-    val a1 = X.prependWithRowOfOne()
+    val a1 = X.prependWithColumnOf(1.0)
 
     val z2 = a1 * Theta1.t()
     var a2 = sigmoid(z2)
-    a2 = a2.prependWithRowOfOne()
+    a2 = a2.prependWithColumnOf(1.0)
 
     val z3 = a2 * Theta2.t()
     var a3 = sigmoid(z3)
@@ -79,7 +79,7 @@ fun nnCostFunction(nn_params: DoubleArray,
 
     val yVec = zeros(Pair(m, num_labels))
 
-    for (i in 1..m) {
+    for (i in 0..m - 1) {
         yVec.data[i][y[i]] = 1.0
     }
 
@@ -94,7 +94,7 @@ fun nnCostFunction(nn_params: DoubleArray,
     //// Part 2 implementation
 
 
-    for (t in 0..m) {
+    for (t in 0..m - 1) {
         a3 = predict(X[t], Theta1, Theta2)
 
         val yy = fromColumn(
@@ -107,7 +107,7 @@ fun nnCostFunction(nn_params: DoubleArray,
         val delta_3 = a3 - yy
 
         val delta_2 = (Theta2.t() * delta_3)
-                .pointMul(sigmoidGradient(z2).prependWithRowOfOne())
+                .pointMul(prependWithRowOf(sigmoidGradient(z2), 1.0))
                 .trimFirstRow()
 
         // delta_1 is not calculated because we do not associate error with the input
@@ -117,8 +117,8 @@ fun nnCostFunction(nn_params: DoubleArray,
         Theta2_grad += delta_3 * a2.t()
     }
 
-    Theta1_grad = (1 / m) * Theta1_grad + (lambda / m) * Theta1.trimFirstRow().prependWithRowOfZeros()
-    Theta2_grad = (1 / m) * Theta2_grad + (lambda / m) * Theta2.trimFirstRow().prependWithRowOfZeros()
+    Theta1_grad = (1 / m) * Theta1_grad + (lambda / m) * prependWithRowOf(Theta1.trimFirstRow(), 0.0)
+    Theta2_grad = (1 / m) * Theta2_grad + (lambda / m) * prependWithRowOf(Theta2.trimFirstRow(), 0.0)
 
 
     // Unroll gradients
@@ -129,11 +129,11 @@ fun nnCostFunction(nn_params: DoubleArray,
 
 fun predict(obj: DoubleArray, Theta1: Matrix, Theta2: Matrix): Matrix {
     // For the input layer, where l=1:
-    val a1 = fromColumn(obj).prependWithRowOfOne().t()
+    val a1 = prependWithRowOf(fromColumn(obj), 1.0).t()
 
     // For the hidden layers, where l=2:
     val z2 = Theta1 * a1;
-    val a2 = sigmoid(z2).prependWithRowOfOne()
+    val a2 = prependWithRowOf(sigmoid(z2), 1.0)
 
     val z3 = Theta2 * a2
     val a3 = sigmoid(z3)
@@ -141,7 +141,7 @@ fun predict(obj: DoubleArray, Theta1: Matrix, Theta2: Matrix): Matrix {
 }
 
 fun pack(m1: Matrix, m2: Matrix): DoubleArray {
-    val result = DoubleArray(m1.rowCount * m1.columnCount + m2.rowCount + m2.columnCount)
+    val result = DoubleArray(m1.rowCount * m1.columnCount + m2.rowCount * m2.columnCount)
     var pos = 0
     m1.data.forEach {
         System.arraycopy(it, 0, result, pos, m1.columnCount)
@@ -169,17 +169,9 @@ private fun prependWithRowOf(m: Matrix, value: Double): Matrix {
     return result
 }
 
-private fun Matrix.prependWithRowOfZeros(): Matrix {
-    return prependWithRowOf(this, 0.0)
-}
-
-fun Matrix.prependWithRowOfOne(): Matrix {
-    return prependWithRowOf(this, 1.0)
-}
-
 private fun zipWith(m1: Matrix, m2: Matrix, op: (Double, Double) -> Double): Matrix {
     if (m1.rowCount != m2.rowCount || m1.columnCount != m2.columnCount) {
-        throw IllegalArgumentException("Cannot sum matrices")
+        throw IllegalArgumentException("Cannot perform point operation")
     }
     return Matrix(
             m1.data.zip(m2.data).map {
@@ -246,7 +238,7 @@ private fun DoubleArray.subArray(from: Int, to: Int): DoubleArray {
 
 private fun reshape(arr: DoubleArray, rowCount: Int, colCount: Int): Matrix {
     return Matrix(
-            (0..rowCount)
+            (0..rowCount - 1)
                     .mapTo(ArrayList<DoubleArray>()) {
                         arr.subArray(it * colCount, (it + 1) * colCount)
                     }

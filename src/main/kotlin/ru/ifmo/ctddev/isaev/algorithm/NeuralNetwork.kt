@@ -1,17 +1,15 @@
-package ru.ifmo.ctddev.isaev
-
-import ru.ifmo.ctddev.isaev.algorithm.*
+package ru.ifmo.ctddev.isaev.algorithm
 
 class NeuralNetwork(private val inputLayerSize: Int,
                     private val hiddenLayerSize: Int,
                     private val outputLayerSize: Int,
                     private val trainingData: List<TrainObject>) {
 
-    private val theta1: Matrix = Matrix(hiddenLayerSize, inputLayerSize + 1)
-            .fillRandom() // network params between input layer and hidden layer
+    private val theta1: Matrix = randomMatrix(hiddenLayerSize, inputLayerSize + 1)
+    // network params between input layer and hidden layer
 
-    private val theta2: Matrix = Matrix(outputLayerSize, hiddenLayerSize + 1)
-            .fillRandom() // network params between hidden layer and output layer
+    private val theta2: Matrix = randomMatrix(outputLayerSize, hiddenLayerSize + 1)
+    // network params between hidden layer and output layer
 
     private val lambda = 0.0
 
