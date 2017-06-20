@@ -11,7 +11,7 @@ data class CostGradientTuple(val cost: Double, val gradient: DoubleArray)
 data class TrainObject(val data: DoubleArray, val clazz: Int)
 
 fun readDataSet(): List<ru.ifmo.ctddev.isaev.algorithm.TrainObject> {
-    return java.io.BufferedReader(java.io.FileReader("./resources/train.csv")).use {
+    return java.io.BufferedReader(java.io.FileReader("./resources/train_small.csv")).use {
         it.lines().skip(1)
                 .map { it.split(',') }
                 .map { it.map { it.toDouble() } }
@@ -46,6 +46,10 @@ fun fromColumn(column: DoubleArray): Matrix {
         result.data[i][0] = column[i]
     }
     return result
+}
+
+fun fromRow(row: DoubleArray): Matrix {
+    return Matrix(arrayOf(row))
 }
 
 

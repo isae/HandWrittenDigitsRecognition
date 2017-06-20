@@ -25,10 +25,9 @@ fun nnCostFunction(nn_params: DoubleArray,
     )
 
     // Setup some useful variables
-    val m = X[0].size
+    val m = X.size
 
     // You need to return the following variables correctly
-    var J = 0.0
     var Theta1_grad = zeros(size(Theta1));
     var Theta2_grad = zeros(size(Theta2));
 
@@ -67,44 +66,30 @@ fun nnCostFunction(nn_params: DoubleArray,
 
     //// Part 1 implementation
 
-    val a1 = X.prependWithColumnOf(1.0)
-
-    val z2 = a1 * Theta1.t()
-    var a2 = sigmoid(z2)
-    a2 = a2.prependWithColumnOf(1.0)
-
-    val z3 = a2 * Theta2.t()
-    var a3 = sigmoid(z3)
-    val hThetaX = a3
-
-    val yVec = zeros(Pair(m, num_labels))
-
-    for (i in 0..m - 1) {
-        yVec.data[i][y[i]] = 1.0
-    }
-
-    J = 1 / m * sum(-1 * yVec.pointMul(log(hThetaX)) - (1 - yVec).pointMul(log(1 - hThetaX)))
-
-    val regularParam = (
-            sum(pointPow(Theta1.trimFirstRow(), 2)) + sum(pointPow(Theta2.trimFirstRow(), 2))
-            ) * (lambda / (2 * m))
-
-    J += regularParam
+    val J = calculateCost(X, Theta1, Theta2, m, num_labels, y, lambda)
 
     //// Part 2 implementation
 
 
     for (t in 0..m - 1) {
-        a3 = predict(X[t], Theta1, Theta2)
+        // For the input layer, where l=1:
+        val a1 = prependWithRowOf(fromColumn(X[t]), 1.0)
 
-        val yy = fromColumn(
+        // For the hidden layers, where l=2:
+        val z2 = Theta1 * a1
+        val a2 = prependWithRowOf(sigmoid(z2), 1.0)
+
+        val z3 = Theta2 * a2
+        val predictedValue = sigmoid(z3)
+
+        val actualValue = fromColumn(
                 IntRange(0, num_labels - 1)
                         .map { it == y[t] }
                         .map { if (it) 1.0 else 0.0 }
                         .toDoubleArray()
         )
         // For the delta values:
-        val delta_3 = a3 - yy
+        val delta_3 = predictedValue - actualValue
 
         val delta_2 = (Theta2.t() * delta_3)
                 .pointMul(prependWithRowOf(sigmoidGradient(z2), 1.0))
@@ -122,17 +107,47 @@ fun nnCostFunction(nn_params: DoubleArray,
 
 
     // Unroll gradients
-    val grad = pack(Theta1_grad, Theta2_grad);
+    val grad = pack(Theta1_grad, Theta2_grad)
     return CostGradientTuple(J, grad)
 
 }
 
+private fun calculateCost(X: Matrix, Theta1: Matrix, Theta2: Matrix, m: Int, num_labels: Int, y: Array<Int>, lambda: Double): Double {
+    val a1 = X.prependWithColumnOf(1.0)
+
+    val z2 = a1 * Theta1.t()
+    var a2 = sigmoid(z2)
+    a2 = a2.prependWithColumnOf(1.0)
+
+    val z3 = a2 * Theta2.t()
+    val a3 = sigmoid(z3)
+    val hThetaX = a3
+
+    val yVec = zeros(Pair(m, num_labels))
+
+    for (i in 0..m - 1) {
+        yVec.data[i][y[i]] = 1.0
+    }
+
+    val J = 1 / m * sum(-yVec.pointMul(log(hThetaX)) - (1 - yVec).pointMul(log(1 - hThetaX)))
+
+    val regularParam = (
+            sum(pointPow(Theta1.trimFirstRow(), 2)) + sum(pointPow(Theta2.trimFirstRow(), 2))
+            ) * (lambda / (2 * m))
+
+    return J + regularParam
+}
+
+private operator fun Matrix.unaryMinus(): Matrix {
+    return 0 - this
+}
+
 fun predict(obj: DoubleArray, Theta1: Matrix, Theta2: Matrix): Matrix {
     // For the input layer, where l=1:
-    val a1 = prependWithRowOf(fromColumn(obj), 1.0).t()
+    val a1 = prependWithRowOf(fromColumn(obj), 1.0)
 
     // For the hidden layers, where l=2:
-    val z2 = Theta1 * a1;
+    val z2 = Theta1 * a1
     val a2 = prependWithRowOf(sigmoid(z2), 1.0)
 
     val z3 = Theta2 * a2
@@ -163,7 +178,7 @@ private fun prependWithRowOf(m: Matrix, value: Double): Matrix {
     val ones = DoubleArray(m.columnCount)
     java.util.Arrays.fill(ones, value)
     result.data[0] = ones
-    for (i in 1..m.rowCount + 1) {
+    for (i in 1..m.rowCount) {
         result.data[i] = m.data[i - 1]
     }
     return result
@@ -171,7 +186,8 @@ private fun prependWithRowOf(m: Matrix, value: Double): Matrix {
 
 private fun zipWith(m1: Matrix, m2: Matrix, op: (Double, Double) -> Double): Matrix {
     if (m1.rowCount != m2.rowCount || m1.columnCount != m2.columnCount) {
-        throw IllegalArgumentException("Cannot perform point operation")
+        throw IllegalArgumentException("Cannot perform point operation: " +
+                "$m1 does not match with $m2")
     }
     return Matrix(
             m1.data.zip(m2.data).map {

@@ -15,8 +15,11 @@ class Matrix {
 
     val columnCount: Int
 
+    val size: Int
+
     constructor(data: Array<DoubleArray>) {
         this.data = data
+        this.size = data.size
         this.rowCount = data.size
         if (rowCount == 0) {
             throw IllegalStateException("Matrix cannot be zero-height")
@@ -34,6 +37,7 @@ class Matrix {
         this.rowCount = rowCount
         this.columnCount = columnCount
         this.data = Array(rowCount) { DoubleArray(columnCount) }
+        this.size = data.size
     }
 
     fun apply(function: (Double) -> Double): Matrix {
@@ -46,7 +50,7 @@ class Matrix {
 
     operator fun times(other: Matrix): Matrix {
         if (other.rowCount != columnCount) {
-            throw IllegalStateException("Invalid matrices to multiply")
+            throw IllegalArgumentException("Cannot multiply: [${rowCount}x${columnCount}] by [${other.rowCount}x${other.columnCount}]")
         }
         val result = Matrix(rowCount, other.columnCount)
         for (i in 0..rowCount - 1) {
@@ -76,9 +80,14 @@ class Matrix {
     fun prependWithColumnOf(d: Double): Matrix {
         val result = Matrix(rowCount, columnCount + 1)
         for (i in 0..rowCount - 1) {
-            result[i][0] = d;
+            result[i][0] = d
             System.arraycopy(this[i], 0, result[i], 1, columnCount)
         }
         return result
     }
+
+    override fun toString(): String {
+        return "[${rowCount}x$columnCount]"
+    }
+
 }

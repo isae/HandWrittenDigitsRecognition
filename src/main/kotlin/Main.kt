@@ -6,4 +6,5 @@ import ru.ifmo.ctddev.isaev.algorithm.readDataSet
  */
 fun main(args: Array<String>) {
     val network = NeuralNetwork(784, 50, 10, readDataSet())
+    val b = true
 }
