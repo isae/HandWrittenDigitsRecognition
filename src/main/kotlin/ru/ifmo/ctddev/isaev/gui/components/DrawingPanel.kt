@@ -32,16 +32,31 @@ class DrawingPanel(w: Int, h: Int, count: Int) : CustomPanel(w, h, count), Mouse
     override fun mouseExited(e: MouseEvent) {}
 
     private fun paintSections(e: MouseEvent) {
-        if (SwingUtilities.isLeftMouseButton(e)) {
-            sections
-                    .filter { e.x > it.x && e.x < it.x + it.width && e.y > it.y && e.y < it.y + it.height }
-                    .forEach { it.isActive = true }
-        } else if (SwingUtilities.isRightMouseButton(e)) {
-            sections
-                    .filter { e.x > it.x && e.x < it.x + it.width && e.y > it.y && e.y < it.y + it.height }
-                    .forEach { it.isActive = false }
+        val sectionToModify = sections
+                .mapIndexed { index, section -> Pair(index, section) }
+                .filter { pair ->
+                    val it = pair.second
+                    e.x > it.x && e.x < it.x + it.width && e.y > it.y && e.y < it.y + it.height
+                }.map { it.first }
+
+        sectionToModify.forEach { i ->
+            val x = i / count
+            val y = i % count
+            if (SwingUtilities.isLeftMouseButton(e)) {
+                sections[i].isActive = true
+                sections[sec(x - 1, y)].isActive = true
+                sections[sec(x + 1, y)].isActive = true
+                sections[sec(x, y - 1)].isActive = true
+                sections[sec(x, y + 1)].isActive = true
+            } else if (SwingUtilities.isRightMouseButton(e)) {
+                sections[i].isActive = false
+            }
         }
 
         repaint()
+    }
+
+    private fun sec(x: Int, y: Int): Int {
+        return count * x + y
     }
 }

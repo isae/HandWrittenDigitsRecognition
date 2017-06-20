@@ -17,6 +17,8 @@ class Matrix {
 
     val size: Int
 
+    private var invalid = false
+
     constructor(data: Array<DoubleArray>) {
         this.data = data
         this.size = data.size
@@ -41,11 +43,13 @@ class Matrix {
     }
 
     fun apply(function: (Double) -> Double): Matrix {
-        val dataCopy = data.copyOf()
-        for (i in 0..data.size - 1)
-            for (j in 0..this[i].size - 1)
-                dataCopy[i][j] = function(dataCopy[i][j])
-        return Matrix(dataCopy)
+        Lock().use {
+            for (i in 0..data.size - 1)
+                for (j in 0..this[i].size - 1)
+                    data[i][j] = function(data[i][j])
+
+            return Matrix(data)
+        }
     }
 
     operator fun times(other: Matrix): Matrix {
@@ -94,38 +98,38 @@ class Matrix {
         return 0 - this
     }
 
-    fun zipWith(m1: Matrix, m2: Matrix, op: (Double, Double) -> Double): Matrix {
-        if (m1.rowCount != m2.rowCount || m1.columnCount != m2.columnCount) {
+    fun zipWith(m2: Matrix, op: (Double, Double) -> Double): Matrix {
+        if (rowCount != m2.rowCount || columnCount != m2.columnCount) {
             throw IllegalArgumentException("Cannot perform point operation: " +
-                    "$m1 does not match with $m2")
+                    "$this does not match with $m2")
         }
-        return Matrix(
-                m1.data.zip(m2.data).map {
-                    it.first.zip(it.second)
-                            .map { op(it.first, it.second) }
-                            .toDoubleArray()
-                }.toTypedArray()
-        )
+        Lock().use {
+            for (i in 0..rowCount - 1)
+                for (j in 0..columnCount - 1) {
+                    data[i][j] = op(data[i][j], m2.data[i][j])
+                }
+            return Matrix(data)
+        }
     }
 
     operator fun plus(other: Matrix): Matrix {
-        return zipWith(this, other, Double::plus)
+        return zipWith(other, Double::plus)
+    }
+
+    operator fun minus(other: Matrix): Matrix {
+        return zipWith(other, Double::minus)
+    }
+
+    fun pointMul(other: Matrix): Matrix {
+        return zipWith(other, Double::times)
     }
 
     fun trimFirstRow(): Matrix {
         return Matrix(
-                this.data.toList()
-                        .subList(1, this.data.size)
-                        .toTypedArray()
+                Array(rowCount - 1,
+                        { i -> data[i + 1] }
+                )
         )
-    }
-
-    operator fun minus(other: Matrix): Matrix {
-        return zipWith(this, other, Double::minus)
-    }
-
-    fun pointMul(other: Matrix): Matrix {
-        return zipWith(this, other, Double::times)
     }
 
     fun sum(): Double {
@@ -133,14 +137,15 @@ class Matrix {
     }
 
     fun prependWithRowOf(value: Double): Matrix {
-        val result = Matrix(rowCount + 1, columnCount)
-        val ones = DoubleArray(columnCount)
-        java.util.Arrays.fill(ones, value)
-        result.data[0] = ones
-        for (i in 1..rowCount) {
-            result.data[i] = data[i - 1]
+        Lock().use {
+            val ones = DoubleArray(columnCount)
+            java.util.Arrays.fill(ones, value)
+            return Matrix(Array(rowCount + 1,
+                    { i ->
+                        if (i == 0) ones else data[i - 1]
+                    }
+            ))
         }
-        return result
     }
 
     fun getData(): Array<DoubleArray> {
@@ -151,4 +156,19 @@ class Matrix {
         return data[row][col]
     }
 
+    inner class Lock : AutoCloseable {
+        override fun close() {
+            invalid = true
+        }
+
+        init {
+            if (invalid) {
+                throw IllegalStateException("Requested operation on invalid data!")
+            }
+        }
+    }
+
+    fun copy(): Matrix {
+        return Matrix(data.copyOf())
+    }
 }

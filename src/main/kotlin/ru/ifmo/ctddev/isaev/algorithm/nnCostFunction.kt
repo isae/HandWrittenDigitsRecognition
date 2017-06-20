@@ -77,7 +77,8 @@ fun nnCostFunction(nn_params: DoubleArray,
 
         // For the hidden layers, where l=2:
         val z2 = Theta1 * a1
-        val a2 = sigmoid(z2).prependWithRowOf(1.0)
+        val a2 = sigmoid(z2)
+                .prependWithRowOf(1.0)
 
         val z3 = Theta2 * a2
         val predictedValue = sigmoid(z3)
@@ -92,7 +93,7 @@ fun nnCostFunction(nn_params: DoubleArray,
         val delta_3 = predictedValue - actualValue
 
         val delta_2 = (Theta2.t() * delta_3)
-                .pointMul(sigmoidGradient(z2).prependWithRowOf(1.0))
+                .pointMul(sigmoidGradient(z2.copy()).prependWithRowOf(1.0))
                 .trimFirstRow()
 
         // delta_1 is not calculated because we do not associate error with the input
@@ -129,7 +130,7 @@ private fun calculateCost(X: Matrix, Theta1: Matrix, Theta2: Matrix, m: Int, num
         yVec.getData()[i][y[i]] = 1.0
     }
 
-    val J = 1 / m * sum(-yVec.pointMul(log(hThetaX)) - (1 - yVec).pointMul(log(1 - hThetaX)))
+    val J = 1 / m * sum(-yVec.pointMul(log(hThetaX)) - (1 - yVec.copy()).pointMul(log(1 - hThetaX.copy())))
 
     val regularParam = (
             sum(pointPow(Theta1.trimFirstRow(), 2)) + sum(pointPow(Theta2.trimFirstRow(), 2))
@@ -172,7 +173,7 @@ private operator fun Double.times(matrix: Matrix): Matrix {
 }
 
 fun sigmoidGradient(z: Matrix): Matrix {
-    return sigmoid(z).pointMul((1 - sigmoid(z)))
+    return z.apply { sigmoidValue(it) * (1 - sigmoidValue(it)) }
 }
 
 fun pointPow(trimFirstRow: Matrix, i: Int): Matrix {
