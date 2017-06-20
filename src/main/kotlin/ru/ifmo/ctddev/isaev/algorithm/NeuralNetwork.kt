@@ -31,7 +31,7 @@ class NeuralNetwork(private val inputLayerSize: Int,
         val a3 = predict(example, theta1, theta2)
         val result = DoubleArray(a3.rowCount)
         for (i in 0..a3.rowCount - 1) {
-            result[i] = a3.data[i][0]
+            result[i] = a3.getAt(i, 0)
         }
         return indMax(result)
     }

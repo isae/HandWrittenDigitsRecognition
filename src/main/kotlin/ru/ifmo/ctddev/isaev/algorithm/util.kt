@@ -52,17 +52,12 @@ fun indMax(arr: DoubleArray): Int {
 }
 
 fun fromColumn(column: DoubleArray): Matrix {
-    val result = Matrix(column.size, 1)
+    val result = Array(column.size) { DoubleArray(1) }
     for (i in column.indices) {
-        result.data[i][0] = column[i]
+        result[i][0] = column[i]
     }
-    return result
+    return Matrix(result)
 }
-
-fun fromRow(row: DoubleArray): Matrix {
-    return Matrix(arrayOf(row))
-}
-
 
 fun randomMatrix(rowCount: Int, columnCount: Int): Matrix {
     val result = Matrix(rowCount, columnCount)

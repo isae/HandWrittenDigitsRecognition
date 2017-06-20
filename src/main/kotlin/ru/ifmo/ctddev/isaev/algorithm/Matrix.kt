@@ -9,7 +9,7 @@ val EPSILON_INIT = 0.12
 
 class Matrix {
 
-    val data: Array<DoubleArray>
+    private val data: Array<DoubleArray>
 
     val rowCount: Int
 
@@ -88,6 +88,67 @@ class Matrix {
 
     override fun toString(): String {
         return "[${rowCount}x$columnCount]"
+    }
+
+    operator fun unaryMinus(): Matrix {
+        return 0 - this
+    }
+
+    fun zipWith(m1: Matrix, m2: Matrix, op: (Double, Double) -> Double): Matrix {
+        if (m1.rowCount != m2.rowCount || m1.columnCount != m2.columnCount) {
+            throw IllegalArgumentException("Cannot perform point operation: " +
+                    "$m1 does not match with $m2")
+        }
+        return Matrix(
+                m1.data.zip(m2.data).map {
+                    it.first.zip(it.second)
+                            .map { op(it.first, it.second) }
+                            .toDoubleArray()
+                }.toTypedArray()
+        )
+    }
+
+    operator fun plus(other: Matrix): Matrix {
+        return zipWith(this, other, Double::plus)
+    }
+
+    fun trimFirstRow(): Matrix {
+        return Matrix(
+                this.data.toList()
+                        .subList(1, this.data.size)
+                        .toTypedArray()
+        )
+    }
+
+    operator fun minus(other: Matrix): Matrix {
+        return zipWith(this, other, Double::minus)
+    }
+
+    fun pointMul(other: Matrix): Matrix {
+        return zipWith(this, other, Double::times)
+    }
+
+    fun sum(): Double {
+        return data.map { it.sum() }.sum()
+    }
+
+    fun prependWithRowOf(value: Double): Matrix {
+        val result = Matrix(rowCount + 1, columnCount)
+        val ones = DoubleArray(columnCount)
+        java.util.Arrays.fill(ones, value)
+        result.data[0] = ones
+        for (i in 1..rowCount) {
+            result.data[i] = data[i - 1]
+        }
+        return result
+    }
+
+    fun getData(): Array<DoubleArray> {
+        return data
+    }
+
+    fun getAt(row: Int, col: Int): Double {
+        return data[row][col]
     }
 
 }

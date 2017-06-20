@@ -73,11 +73,11 @@ fun nnCostFunction(nn_params: DoubleArray,
 
     for (t in 0..m - 1) {
         // For the input layer, where l=1:
-        val a1 = prependWithRowOf(fromColumn(X[t]), 1.0)
+        val a1 = fromColumn(X[t]).prependWithRowOf(1.0)
 
         // For the hidden layers, where l=2:
         val z2 = Theta1 * a1
-        val a2 = prependWithRowOf(sigmoid(z2), 1.0)
+        val a2 = sigmoid(z2).prependWithRowOf(1.0)
 
         val z3 = Theta2 * a2
         val predictedValue = sigmoid(z3)
@@ -92,7 +92,7 @@ fun nnCostFunction(nn_params: DoubleArray,
         val delta_3 = predictedValue - actualValue
 
         val delta_2 = (Theta2.t() * delta_3)
-                .pointMul(prependWithRowOf(sigmoidGradient(z2), 1.0))
+                .pointMul(sigmoidGradient(z2).prependWithRowOf(1.0))
                 .trimFirstRow()
 
         // delta_1 is not calculated because we do not associate error with the input
@@ -102,8 +102,8 @@ fun nnCostFunction(nn_params: DoubleArray,
         Theta2_grad += delta_3 * a2.t()
     }
 
-    Theta1_grad = (1 / m) * Theta1_grad + (lambda / m) * prependWithRowOf(Theta1.trimFirstRow(), 0.0)
-    Theta2_grad = (1 / m) * Theta2_grad + (lambda / m) * prependWithRowOf(Theta2.trimFirstRow(), 0.0)
+    Theta1_grad = (1 / m) * Theta1_grad + (lambda / m) * Theta1.trimFirstRow().prependWithRowOf(0.0)
+    Theta2_grad = (1 / m) * Theta2_grad + (lambda / m) * Theta2.trimFirstRow().prependWithRowOf(0.0)
 
 
     // Unroll gradients
@@ -126,7 +126,7 @@ private fun calculateCost(X: Matrix, Theta1: Matrix, Theta2: Matrix, m: Int, num
     val yVec = zeros(Pair(m, num_labels))
 
     for (i in 0..m - 1) {
-        yVec.data[i][y[i]] = 1.0
+        yVec.getData()[i][y[i]] = 1.0
     }
 
     val J = 1 / m * sum(-yVec.pointMul(log(hThetaX)) - (1 - yVec).pointMul(log(1 - hThetaX)))
@@ -138,17 +138,15 @@ private fun calculateCost(X: Matrix, Theta1: Matrix, Theta2: Matrix, m: Int, num
     return J + regularParam
 }
 
-private operator fun Matrix.unaryMinus(): Matrix {
-    return 0 - this
-}
-
 fun predict(obj: DoubleArray, Theta1: Matrix, Theta2: Matrix): Matrix {
     // For the input layer, where l=1:
-    val a1 = prependWithRowOf(fromColumn(obj), 1.0)
+    val a1 = fromColumn(obj)
+            .prependWithRowOf(1.0)
 
     // For the hidden layers, where l=2:
     val z2 = Theta1 * a1
-    val a2 = prependWithRowOf(sigmoid(z2), 1.0)
+    val a2 = sigmoid(z2)
+            .prependWithRowOf(1.0)
 
     val z3 = Theta2 * a2
     val a3 = sigmoid(z3)
@@ -158,11 +156,11 @@ fun predict(obj: DoubleArray, Theta1: Matrix, Theta2: Matrix): Matrix {
 fun pack(m1: Matrix, m2: Matrix): DoubleArray {
     val result = DoubleArray(m1.rowCount * m1.columnCount + m2.rowCount * m2.columnCount)
     var pos = 0
-    m1.data.forEach {
+    m1.getData().forEach {
         System.arraycopy(it, 0, result, pos, m1.columnCount)
         pos += m1.columnCount
     }
-    m2.data.forEach {
+    m2.getData().forEach {
         System.arraycopy(it, 0, result, pos, m2.columnCount)
         pos += m2.columnCount
     }
@@ -173,43 +171,6 @@ private operator fun Double.times(matrix: Matrix): Matrix {
     return matrix.apply { this * it }
 }
 
-private fun prependWithRowOf(m: Matrix, value: Double): Matrix {
-    val result = Matrix(m.rowCount + 1, m.columnCount)
-    val ones = DoubleArray(m.columnCount)
-    java.util.Arrays.fill(ones, value)
-    result.data[0] = ones
-    for (i in 1..m.rowCount) {
-        result.data[i] = m.data[i - 1]
-    }
-    return result
-}
-
-private fun zipWith(m1: Matrix, m2: Matrix, op: (Double, Double) -> Double): Matrix {
-    if (m1.rowCount != m2.rowCount || m1.columnCount != m2.columnCount) {
-        throw IllegalArgumentException("Cannot perform point operation: " +
-                "$m1 does not match with $m2")
-    }
-    return Matrix(
-            m1.data.zip(m2.data).map {
-                it.first.zip(it.second)
-                        .map { op(it.first, it.second) }
-                        .toDoubleArray()
-            }.toTypedArray()
-    )
-}
-
-private operator fun Matrix.plus(other: Matrix): Matrix {
-    return zipWith(this, other, Double::plus)
-}
-
-private fun Matrix.trimFirstRow(): Matrix {
-    return Matrix(
-            this.data.toList()
-                    .subList(1, this.data.size)
-                    .toTypedArray()
-    )
-}
-
 fun sigmoidGradient(z: Matrix): Matrix {
     return sigmoid(z).pointMul((1 - sigmoid(z)))
 }
@@ -218,27 +179,19 @@ fun pointPow(trimFirstRow: Matrix, i: Int): Matrix {
     return trimFirstRow.apply { Math.pow(it, i.toDouble()) }
 }
 
-private operator fun Matrix.minus(other: Matrix): Matrix {
-    return zipWith(this, other, Double::minus)
-}
-
 private operator fun Int.times(pointMul: Matrix): Matrix {
     return pointMul.apply { this * it }
 }
 
 fun sum(matrix: Matrix): Double {
-    return matrix.data.map { it.sum() }.sum()
-}
-
-fun Matrix.pointMul(other: Matrix): Matrix {
-    return zipWith(this, other, Double::times)
+    return matrix.sum()
 }
 
 fun log(matrix: Matrix): Matrix {
     return matrix.apply { Math.log(it) }
 }
 
-private operator fun Int.minus(matrix: Matrix): Matrix {
+operator fun Int.minus(matrix: Matrix): Matrix {
     return matrix.apply { this - it }
 }
 
