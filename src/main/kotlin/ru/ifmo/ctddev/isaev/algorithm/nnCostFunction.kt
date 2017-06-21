@@ -1,7 +1,5 @@
 package ru.ifmo.ctddev.isaev.algorithm
 
-import java.util.*
-
 /**
  * @author iisaev
  */
@@ -200,20 +198,19 @@ fun zeros(size: Pair<Int, Int>): Matrix {
     return Matrix(size.first, size.second)
 }
 
-private fun DoubleArray.subArray(from: Int, to: Int): DoubleArray {
+fun DoubleArray.subArray(from: Int, to: Int): DoubleArray {
     val result = DoubleArray(to - from)
     System.arraycopy(this, from, result, 0, to - from)
     return result
 }
 
 fun reshape(arr: DoubleArray, rowCount: Int, colCount: Int): Matrix {
-    return Matrix(
-            (0..rowCount - 1)
-                    .mapTo(ArrayList<DoubleArray>()) {
-                        arr.subArray(it * colCount, (it + 1) * colCount)
-                    }
-                    .toTypedArray()
-    )
+    val result = Array(rowCount, { kotlin.DoubleArray(colCount) })
+    for (i in 0..colCount - 1)
+        for (j in 0..rowCount - 1) {
+            result[j][i] = arr[i * rowCount + j]
+        }
+    return Matrix(result)
 }
 
 fun size(matr: Matrix): Pair<Int, Int> {
