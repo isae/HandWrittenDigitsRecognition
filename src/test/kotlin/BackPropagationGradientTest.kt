@@ -20,7 +20,7 @@ class BackPropagationGradientTest {
         // Reusing debugInitializeWeights to generate X
         val X = debugInitializeWeights(m, inputLayerSize - 1)
         val y = 1.rangeTo(m)
-                .map { it % numLabels + 1 }
+                .map { it % numLabels }
                 .toTypedArray()
 
         // Unroll parameters
@@ -63,8 +63,8 @@ class BackPropagationGradientTest {
         val size = hiddenLayerSize * (inputLayerSize + 1)
         return reshape(
                 1.rangeTo(size).map { Math.sin(it.toDouble()) / 10 }.toDoubleArray(),
-                inputLayerSize + 1, hiddenLayerSize
-        ).t()
+                hiddenLayerSize, inputLayerSize + 1
+        )
     }
 
     private fun computeNumericalGradient(J: (DoubleArray) -> Double, theta: DoubleArray): DoubleArray {
