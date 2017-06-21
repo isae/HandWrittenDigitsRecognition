@@ -18,7 +18,7 @@ fun readDataSet(): List<TrainObject> {
         return java.io.BufferedReader(java.io.FileReader("./resources/train.csv")).use {
             it.lines()
                     .skip(1)
-                    .limit(5)
+                    .limit(50)
                     .map { it.split(',') }
                     .map { it.map { it.toDouble() } }
                     .map {

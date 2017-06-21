@@ -14,14 +14,16 @@ import javax.swing.*
 class MainGui : JFrame("Digit recognition using neural network") {
 
     private val RESOLUTION = 28
-    private val network = NeuralNetwork(784, 50, 10, readDataSet())
+    private val dataset = readDataSet()
+    private var counter = 0
+    private val network = NeuralNetwork(784, 50, 10, dataset)
 
     private var mainPanel: JPanel = JPanel()
     private var drawingPanel: DrawingPanel = DrawingPanel(400, 400, RESOLUTION)
     private var resultPanel: CustomPanel = CustomPanel(400, 400, RESOLUTION)
 
     private var clearButton: JButton = JButton("Clear")
-    private var trainButton: JButton = JButton("Train")
+    private var drawTrainObjectButton: JButton = JButton("Draw next train object")
     private var transformButton: JButton = JButton(">>")
     private var helpButton: JButton = JButton("HELP")
     private var recognizeButton: JButton = JButton("Recognize")
@@ -84,6 +86,8 @@ class MainGui : JFrame("Digit recognition using neural network") {
         centerPanel.add(Box.createVerticalStrut(50))
 
         centerPanel.add(clearButton, gbc)
+
+        centerPanel.add(drawTrainObjectButton, gbc)
 /*
         centerPanel.add(Box.createVerticalStrut(50))
 
@@ -98,7 +102,7 @@ class MainGui : JFrame("Digit recognition using neural network") {
 
         centerPanel.add(JLabel("Train as:", SwingConstants.CENTER), gbc)
 
-        centerPanel.add(trainButton, gbc)
+        centerPanel.add(drawTrainObjectButton, gbc)
 */
         mainPanel.add(centerPanel)
     }
@@ -124,9 +128,8 @@ class MainGui : JFrame("Digit recognition using neural network") {
     private fun setOnClicks() {
         clearButton.addActionListener { drawingPanel.clear() }
 
-        trainButton.addActionListener {
-            //network.addTrainingSet(TrainingSet(drawingPanel.pixels, GoodOutputs.instance.getGoodOutput(letter)))
-            //ReadWriteFile.saveToFile(drawingPanel.pixels, letter)
+        drawTrainObjectButton.addActionListener {
+            drawTrainObject(dataset[counter++])
         }
 
         transformButton.addActionListener { e ->

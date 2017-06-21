@@ -156,15 +156,15 @@ fun predict(obj: DoubleArray, Theta1: Matrix, Theta2: Matrix): Matrix {
 
 fun pack(m1: Matrix, m2: Matrix): DoubleArray {
     val result = DoubleArray(m1.rowCount * m1.columnCount + m2.rowCount * m2.columnCount)
-    var pos = 0
-    m1.getData().forEach {
-        System.arraycopy(it, 0, result, pos, m1.columnCount)
-        pos += m1.columnCount
-    }
-    m2.getData().forEach {
-        System.arraycopy(it, 0, result, pos, m2.columnCount)
-        pos += m2.columnCount
-    }
+    for (i in 0..m1.columnCount - 1)
+        for (j in 0..m1.rowCount - 1) {
+            result[m1.rowCount * i + j] = m1.getAt(j, i)
+        }
+    val pos = m1.rowCount * m1.columnCount
+    for (i in 0..m2.columnCount - 1)
+        for (j in 0..m2.rowCount - 1) {
+            result[pos + m2.rowCount * i + j] = m2.getAt(j, i)
+        }
     return result
 }
 
@@ -206,7 +206,7 @@ private fun DoubleArray.subArray(from: Int, to: Int): DoubleArray {
     return result
 }
 
-private fun reshape(arr: DoubleArray, rowCount: Int, colCount: Int): Matrix {
+fun reshape(arr: DoubleArray, rowCount: Int, colCount: Int): Matrix {
     return Matrix(
             (0..rowCount - 1)
                     .mapTo(ArrayList<DoubleArray>()) {
@@ -216,6 +216,6 @@ private fun reshape(arr: DoubleArray, rowCount: Int, colCount: Int): Matrix {
     )
 }
 
-private fun size(matr: Matrix): Pair<Int, Int> {
+fun size(matr: Matrix): Pair<Int, Int> {
     return Pair(matr.rowCount, matr.columnCount)
 }

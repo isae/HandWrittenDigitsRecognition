@@ -193,7 +193,7 @@ fun fmincg(f: (DoubleArray) -> CostGradientTuple,
     return input
 }
 
-private operator fun DoubleArray.minus(other: DoubleArray): DoubleArray {
+operator fun DoubleArray.minus(other: DoubleArray): DoubleArray {
     return this.zip(other)
             .map { it.first - it.second }
             .toDoubleArray()
