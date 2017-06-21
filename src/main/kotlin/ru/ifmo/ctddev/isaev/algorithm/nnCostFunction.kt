@@ -26,8 +26,8 @@ fun nnCostFunction(nn_params: DoubleArray,
     val m = X.size
 
     // You need to return the following variables correctly
-    var Theta1_grad = zeros(size(Theta1));
-    var Theta2_grad = zeros(size(Theta2));
+    var Theta1_grad = zeros(size(Theta1))
+    var Theta2_grad = zeros(size(Theta2))
 
     // ====================== YOUR CODE HERE ======================
     // Instructions: You should complete the code by working through the
@@ -64,7 +64,7 @@ fun nnCostFunction(nn_params: DoubleArray,
 
     //// Part 1 implementation
 
-    val J = calculateCost(X, Theta1, Theta2, m, num_labels, y, lambda)
+    val J = calculateCost(X, Theta1.copy(), Theta2.copy(), m, num_labels, y, lambda)
 
     //// Part 2 implementation
 
@@ -74,11 +74,11 @@ fun nnCostFunction(nn_params: DoubleArray,
         val a1 = fromColumn(X[t]).prependWithRowOf(1.0)
 
         // For the hidden layers, where l=2:
-        val z2 = Theta1 * a1
-        val a2 = sigmoid(z2)
+        val z2 = Theta1.copy() * a1
+        val a2 = sigmoid(z2.copy())
                 .prependWithRowOf(1.0)
 
-        val z3 = Theta2 * a2
+        val z3 = Theta2.copy() * a2
         val predictedValue = sigmoid(z3)
 
         val actualValue = fromColumn(
@@ -101,8 +101,8 @@ fun nnCostFunction(nn_params: DoubleArray,
         Theta2_grad += delta_3 * a2.t()
     }
 
-    Theta1_grad = (1 / m) * Theta1_grad + (lambda / m) * Theta1.trimFirstRow().prependWithRowOf(0.0)
-    Theta2_grad = (1 / m) * Theta2_grad + (lambda / m) * Theta2.trimFirstRow().prependWithRowOf(0.0)
+    Theta1_grad = (1.0 / m) * Theta1_grad + (lambda / m) * Theta1.zeroFirstColumn()
+    Theta2_grad = (1.0 / m) * Theta2_grad + (lambda / m) * Theta2.zeroFirstColumn()
 
 
     // Unroll gradients
@@ -127,11 +127,14 @@ private fun calculateCost(X: Matrix, Theta1: Matrix, Theta2: Matrix, m: Int, num
     for (i in 0..m - 1) {
         yVec.getData()[i][y[i]] = 1.0
     }
-
-    val J = 1 / m * sum(-yVec.pointMul(log(hThetaX)) - (1 - yVec.copy()).pointMul(log(1 - hThetaX.copy())))
+    val hThetaXcopy = hThetaX.copy()
+    val yVecCopy = yVec.copy()
+    val tmp1 = -yVec.pointMul(log(hThetaX))
+    val tmp2 = (1 - yVecCopy).pointMul(log(1 - hThetaXcopy))
+    val J = 1.0 / m * sum(tmp1 - tmp2)
 
     val regularParam = (
-            sum(pointPow(Theta1.trimFirstRow(), 2)) + sum(pointPow(Theta2.trimFirstRow(), 2))
+            sum(pointPow(Theta1.copy().trimFirstRow(), 2)) + sum(pointPow(Theta2.trimFirstRow(), 2))
             ) * (lambda / (2 * m))
 
     return J + regularParam

@@ -28,7 +28,7 @@ class BackPropagationGradientTest {
 
         // Short hand for cost function
         val costFunc = { params: DoubleArray ->
-            nnCostFunction(params, inputLayerSize, hiddenLayerSize, numLabels, X, y, lambda)
+            nnCostFunction(params, inputLayerSize, hiddenLayerSize, numLabels, X.copy(), y, lambda)
         }
 
         val costGrad = costFunc(nn_params)

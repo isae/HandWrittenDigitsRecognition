@@ -53,6 +53,7 @@ class Matrix {
     }
 
     operator fun times(other: Matrix): Matrix {
+        assertValid()
         if (other.rowCount != columnCount) {
             throw IllegalArgumentException("Cannot multiply: [${rowCount}x${columnCount}] by [${other.rowCount}x${other.columnCount}]")
         }
@@ -68,6 +69,7 @@ class Matrix {
     }
 
     fun t(): Matrix {
+        assertValid()
         val result = Matrix(columnCount, rowCount)
         for (i in 0..rowCount - 1) {
             for (j in 0..columnCount - 1) {
@@ -82,12 +84,14 @@ class Matrix {
     }
 
     fun prependWithColumnOf(d: Double): Matrix {
-        val result = Matrix(rowCount, columnCount + 1)
-        for (i in 0..rowCount - 1) {
-            result[i][0] = d
-            System.arraycopy(this[i], 0, result[i], 1, columnCount)
+        Lock().use {
+            val result = Matrix(rowCount, columnCount + 1)
+            for (i in 0..rowCount - 1) {
+                result[i][0] = d
+                System.arraycopy(this[i], 0, result[i], 1, columnCount)
+            }
+            return result
         }
-        return result
     }
 
     override fun toString(): String {
@@ -125,11 +129,13 @@ class Matrix {
     }
 
     fun trimFirstRow(): Matrix {
-        return Matrix(
-                Array(rowCount - 1,
-                        { i -> data[i + 1] }
-                )
-        )
+        Lock().use {
+            return Matrix(
+                    Array(rowCount - 1,
+                            { i -> data[i + 1] }
+                    )
+            )
+        }
     }
 
     fun sum(): Double {
@@ -162,13 +168,28 @@ class Matrix {
         }
 
         init {
-            if (invalid) {
-                throw IllegalStateException("Requested operation on invalid data!")
-            }
+            assertValid()
         }
     }
 
     fun copy(): Matrix {
-        return Matrix(data.copyOf())
+        assertValid()
+        val result = Array(rowCount, { i -> data[i].copyOf() })
+        return Matrix(result)
+    }
+
+    private fun assertValid() {
+        if (invalid) {
+            throw IllegalStateException("Requested operation on invalid data!")
+        }
+    }
+
+    fun zeroFirstColumn(): Matrix {
+        Lock().use {
+            for (i in 0..rowCount - 1) {
+                data[i][0] = 0.0
+            }
+            return Matrix(data)
+        }
     }
 }

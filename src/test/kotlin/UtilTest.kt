@@ -37,4 +37,40 @@ class UtilTest {
         assertMatrixEquals(testM2, Theta2, 1e-4)
 
     }
+
+    @Test
+    fun testCopy() {
+        val testM1 = Matrix(
+                arrayOf(
+                        DoubleArray(5, { random.nextDouble() }),
+                        DoubleArray(5, { random.nextDouble() }),
+                        DoubleArray(5, { random.nextDouble() })
+                )
+        )
+        assertMatrixEquals(testM1, testM1.copy(), 1e-8)
+    }
+
+    @Test
+    fun testMatrixMultiplication() {
+        val m1 = Matrix(
+                arrayOf(
+                        arrayOf(7, 3, 4).map { it.toDouble() }.toDoubleArray()
+                )
+        )
+        val m2 = Matrix(
+                arrayOf(
+                        arrayOf(1, 5).map { it.toDouble() }.toDoubleArray(),
+                        arrayOf(2, 9).map { it.toDouble() }.toDoubleArray(),
+                        arrayOf(6, 3).map { it.toDouble() }.toDoubleArray()
+                )
+        )
+
+        val mulResult = m1 * m2
+        val expectedMulResult = Matrix(
+                arrayOf(
+                        arrayOf(37, 74).map { it.toDouble() }.toDoubleArray()
+                )
+        )
+        assertMatrixEquals(expectedMulResult, mulResult, 1e-6)
+    }
 }
