@@ -1,5 +1,6 @@
 import org.junit.Test
 import ru.ifmo.ctddev.isaev.algorithm.*
+import kotlin.test.assertTrue
 
 /**
  * @author iisaev
@@ -37,20 +38,9 @@ class BackPropagationGradientTest {
                 { t -> costFunc(t).cost }
                 , nn_params)
 
-        // Visually examine the two gradient computations.  The two columns
-        // you get should be very similar.
-        //disp([numgrad grad]);
-        println("The above two columns you get should be very similar.\n " +
-                "(Left-Your Numerical Gradient, Right-Analytical Gradient)\n\n'")
-
-        // Evaluate the norm of the difference between two solutions.
-        // If you have a correct implementation, and assuming you used EPSILON = 0.0001
-        // in computeNumericalGradient.m, then diff below should be less than 1e-9
         val diff = norm(numgrad - grad) / norm(numgrad + grad)
 
-        println("If your backpropagation implementation is correct, then \n" +
-                "the relative difference will be small (less than 1e-9). \n" +
-                "Relative Difference: //$diff\n'")
+        assertTrue(Math.abs(diff) < 10e-9, "Diff is lesser than 1e-9")
 
     }
 
@@ -73,12 +63,12 @@ class BackPropagationGradientTest {
         val perturb = DoubleArray(theta.size)
         val e = 1e-4
         for (p in 0..theta.size - 1) {
-            // Set perturbation vector
+            // Set perturbation vectorlll
             perturb[p] = e
             val loss1 = J(theta - perturb)
             val loss2 = J(theta + perturb)
-            // Compute Numerical Gradient
-            numgrad[p] = (loss2 - loss1) / (2 * e)
+            // Compute Numerical Gradientl
+            numgrad[p] = (loss2 - loss1) / (2.0 * e)
             perturb[p] = 0.0
         }
         return numgrad

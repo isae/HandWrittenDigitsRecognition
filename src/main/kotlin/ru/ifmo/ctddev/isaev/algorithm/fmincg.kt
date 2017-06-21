@@ -199,6 +199,13 @@ operator fun DoubleArray.minus(other: DoubleArray): DoubleArray {
             .toDoubleArray()
 }
 
+operator fun DoubleArray.plus(other: DoubleArray): DoubleArray {
+    return this.zip(other)
+            .map { it.first + it.second }
+            .toDoubleArray()
+}
+
+
 private fun DoubleArray.dot(other: DoubleArray): Double {
     return this.zip(other)
             .map { it.first + it.second }
