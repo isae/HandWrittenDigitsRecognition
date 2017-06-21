@@ -23,7 +23,7 @@ fun fmincg(f: (DoubleArray) -> CostGradientTuple,
     var input = theta
     var M = 0
     var i = 0 // zero the run length counter
-    val red = 1 // starting point
+    val red = 1.0 // starting point
     var ls_failed = 0 // no previous line search has failed
     val evaluateCost = f(input)
     var f1 = evaluateCost.cost
@@ -59,12 +59,12 @@ fun fmincg(f: (DoubleArray) -> CostGradientTuple,
             M = Math.min(MAX, -length - i)
         }
         // initialize quanteties
-        var success = 0
+        var success = false
         var limit = -1.0
 
         while (true) {
             println("\tStarted iteration ${++counter}")
-            while (((f2 > f1 + z1 * RHO * d1) || (d2 > -SIG * d1)) && (M > 0)) {
+            while (((f2 > f1 + z1 * RHO * d1) || (d2 > -SIG * d1)) && (M > 0.0)) {
                 // tighten the bracket
                 limit = z1
                 var z2: Double
@@ -75,8 +75,8 @@ fun fmincg(f: (DoubleArray) -> CostGradientTuple,
                     z2 = z3 - (0.5 * d3 * z3 * z3) / (d3 * z3 + f2 - f3)
                 } else {
                     // cubic fit
-                    A = 6 * (f2 - f3) / z3 + 3 * (d2 + d3)
-                    B = 3 * (f3 - f2) - z3 * (d3 + 2 * d2)
+                    A = 6.0 * (f2 - f3) / z3 + 3 * (d2 + d3)
+                    B = 3.0 * (f3 - f2) - z3 * (d3 + 2.0 * d2)
                     // numerical error possible - ok!
                     z2 = (Math.sqrt(B * B - A * d2 * z3 * z3) - B) / A
                 }
@@ -85,7 +85,7 @@ fun fmincg(f: (DoubleArray) -> CostGradientTuple,
                     z2 = z3 / 2.0
                 }
                 // don't accept too close to limits
-                z2 = Math.max(Math.min(z2, INT * z3), (1 - INT) * z3)
+                z2 = Math.max(Math.min(z2, INT * z3), (1.0 - INT) * z3)
                 // update the step
                 z1 += z2
                 input += s * z2
@@ -102,28 +102,28 @@ fun fmincg(f: (DoubleArray) -> CostGradientTuple,
             if (f2 > f1 + z1 * RHO * d1 || d2 > -SIG * d1) {
                 break // this is a failure
             } else if (d2 > SIG * d1) {
-                success = 1
+                success = true
                 break // success
             } else if (M == 0) {
                 break // failure
             }
             // make cubic extrapolation
-            val A = 6 * (f2 - f3) / z3 + 3 * (d2 + d3)
-            val B = 3 * (f3 - f2) - z3 * (d3 + 2 * d2)
+            val A = 6.0 * (f2 - f3) / z3 + 3.0 * (d2 + d3)
+            val B = 3.0 * (f3 - f2) - z3 * (d3 + 2.0 * d2)
             var z2 = -d2 * z3 * z3 / (B + Math.sqrt(B * B - A * d2 * z3 * z3))
             // num prob or wrong sign?
-            if (z2.isNaN() || z2.isInfinite() || z2 < 0)
+            if (z2.isNaN() || z2.isInfinite() || z2 < 0.0)
             // if we have no upper limit
                 if (limit < -0.5) {
                     // the extrapolate the maximum amount
-                    z2 = z1 * (EXT - 1)
+                    z2 = z1 * (EXT - 1.0)
                 } else {
                     // otherwise bisect
-                    z2 = (limit - z1) / 2
+                    z2 = (limit - z1) / 2.0
                 }
             else if ((limit > -0.5) && (z2 + z1 > limit)) {
                 // extrapolation beyond max?
-                z2 = (limit - z1) / 2 // bisect
+                z2 = (limit - z1) / 2.0 // bisect
             } else if ((limit < -0.5) && (z2 + z1 > z1 * EXT)) {
                 // extrapolation beyond limit
                 z2 = z1 * (EXT - 1.0) // set to extrapolation limit
@@ -151,7 +151,7 @@ fun fmincg(f: (DoubleArray) -> CostGradientTuple,
 
         var tmp: DoubleArray
 
-        if (success == 1) { // if line search succeeded
+        if (success) { // if line search succeeded
             f1 = f2
 
             // Polack-Ribiere direction: s =
