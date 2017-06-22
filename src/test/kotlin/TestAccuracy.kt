@@ -14,7 +14,7 @@ class TestAccuracy {
     private val DATASET_SIZE = 500
     private val TRAIN_SIZE = (DATASET_SIZE * 0.8).toInt()
     private val TEST_SIZE = 1000
-    private val network = NewNetwork(784, 50, 10, dataset.subList(0, TRAIN_SIZE), true)
+    private val network = NewNetwork(784, 50, 10, dataset.subList(0, TRAIN_SIZE), false)
 
     @Test
     fun testAccuracy() {
