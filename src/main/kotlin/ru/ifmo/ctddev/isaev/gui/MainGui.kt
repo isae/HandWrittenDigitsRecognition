@@ -1,34 +1,34 @@
 package ru.ifmo.ctddev.isaev.gui
 
-import ru.ifmo.ctddev.isaev.algorithm.NeuralNetwork
-import ru.ifmo.ctddev.isaev.algorithm.TrainObject
-import ru.ifmo.ctddev.isaev.algorithm.readDataSet
-import ru.ifmo.ctddev.isaev.gui.components.CustomPanel
+import ru.ifmo.ctddev.isaev.algorithm.*
 import ru.ifmo.ctddev.isaev.gui.components.DrawingPanel
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.util.*
 import javax.swing.*
 
 class MainGui : JFrame("Digit recognition using neural network") {
-
+    private val RANDOM = Random()
+    private val TRAIN_SIZE = 50
     private val RESOLUTION = 28
     private val dataset = readDataSet()
-    private var counter = 0
-    private val network = NeuralNetwork(784, 50, 10, dataset)
+    private var isPretrained = false
+    private val network = NewNetwork(784, 50, 10, dataset.subList(0, TRAIN_SIZE))
+    private val pretrainedNetwork = PretrainedNetwork(784, 50, 10, "1498159394691")
+    private var networkToUse: NeuralNetwork = network
 
     private var mainPanel: JPanel = JPanel()
-    private var drawingPanel: DrawingPanel = DrawingPanel(400, 400, RESOLUTION)
-    private var resultPanel: CustomPanel = CustomPanel(400, 400, RESOLUTION)
+    private var drawingPanel: DrawingPanel = DrawingPanel(420, 420, RESOLUTION)
 
     private var clearButton: JButton = JButton("Clear")
-    private var drawTrainObjectButton: JButton = JButton("Draw next train object")
+    private var drawTrainObjectButton: JButton = JButton("Draw random train object")
     private var transformButton: JButton = JButton(">>")
-    private var helpButton: JButton = JButton("HELP")
+    private var switchToTrainedNetworkButton: JButton = JButton("Switch to pretrained")
     private var recognizeButton: JButton = JButton("Recognize")
     private var drawLetterButton: JButton = JButton("Draw:")
-    private var resultField: JTextField = JFormattedTextField("5000")
+    private var resultField: JTextField = JFormattedTextField("                 ")
     private var outputTextArea: JTextArea = JTextArea()
 
     init {
@@ -80,14 +80,16 @@ class MainGui : JFrame("Digit recognition using neural network") {
 
         resultField.maximumSize = Dimension(100, 30)
         resultField.preferredSize = Dimension(100, 30)
-        centerPanel.add(recognizeButton, gbc)
+        resultField.minimumSize = Dimension(180, 30)
         centerPanel.add(resultField, gbc)
+        centerPanel.add(recognizeButton, gbc)
 
         centerPanel.add(Box.createVerticalStrut(50))
 
         centerPanel.add(clearButton, gbc)
 
         centerPanel.add(drawTrainObjectButton, gbc)
+        centerPanel.add(switchToTrainedNetworkButton, gbc)
 /*
         centerPanel.add(Box.createVerticalStrut(50))
 
@@ -107,14 +109,6 @@ class MainGui : JFrame("Digit recognition using neural network") {
         mainPanel.add(centerPanel)
     }
 
-    private fun setRightSide() {
-        val panel = JPanel()
-        panel.background = Color.LIGHT_GRAY
-        panel.border = BorderFactory.createEmptyBorder(30, 0, 0, 0)
-        panel.add(resultPanel)
-        mainPanel.add(panel)
-    }
-
     private fun setOutputPanel() {
         val outputPanel = JPanel()
         outputPanel.preferredSize = Dimension(200, 430)
@@ -129,7 +123,7 @@ class MainGui : JFrame("Digit recognition using neural network") {
         clearButton.addActionListener { drawingPanel.clear() }
 
         drawTrainObjectButton.addActionListener {
-            drawTrainObject(dataset[counter++])
+            drawTrainObject(dataset[RANDOM.nextInt(dataset.size)])
         }
 
         transformButton.addActionListener { e ->
@@ -144,21 +138,20 @@ class MainGui : JFrame("Digit recognition using neural network") {
         }
 
 
-        helpButton.addActionListener { e ->
-            val sb = StringBuilder()
-            sb.append("Train network X times after you start the program. Recommended 5000 times\n")
-            sb.append("\n")
-            sb.append("Use left/right mouse button to draw/erase\n")
-            sb.append("\n")
-            sb.append("Click \">>\" to see result\n")
-            sb.append("\n")
-            sb.append("Click \"Train\" to train specific letter\n")
-            JOptionPane.showMessageDialog(this, sb.toString(), "Help", JOptionPane.PLAIN_MESSAGE)
+        switchToTrainedNetworkButton.addActionListener {
+            if (isPretrained) {
+                networkToUse = pretrainedNetwork
+                switchToTrainedNetworkButton.text = "Switch to pre-trained NN"
+            } else {
+                networkToUse = network
+                switchToTrainedNetworkButton.text = "Switch to fresh NN"
+            }
+            isPretrained = !isPretrained
         }
 
         recognizeButton.addActionListener {
             val pixels = drawingPanel.pixels
-                    .map { it*255 }
+                    .map { it * 255 }
                     .map { it.toDouble() }
                     .toDoubleArray()
             resultField.text = "Recognized digit: ${network.predictResult(pixels)}"

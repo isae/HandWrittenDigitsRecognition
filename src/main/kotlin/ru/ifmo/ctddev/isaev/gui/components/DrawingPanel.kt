@@ -40,20 +40,24 @@ class DrawingPanel(w: Int, h: Int, count: Int) : CustomPanel(w, h, count), Mouse
                 }.map { it.first }
 
         sectionToModify.forEach { i ->
-            val x = i / count
-            val y = i % count
             if (SwingUtilities.isLeftMouseButton(e)) {
-                sections[i].isActive = true
-                sections[sec(x - 1, y)].isActive = true
-                sections[sec(x + 1, y)].isActive = true
-                sections[sec(x, y - 1)].isActive = true
-                sections[sec(x, y + 1)].isActive = true
+                setActive(i, true)
             } else if (SwingUtilities.isRightMouseButton(e)) {
-                sections[i].isActive = false
+                setActive(i, false)
             }
         }
 
         repaint()
+    }
+
+    private fun setActive(i: Int, isActive: Boolean) {
+        val x = i / count
+        val y = i % count
+        sections[i].isActive = isActive
+        sections[sec(x - 1, y)].isActive = isActive
+        sections[sec(x + 1, y)].isActive = isActive
+        sections[sec(x, y - 1)].isActive = isActive
+        sections[sec(x, y + 1)].isActive = isActive
     }
 
     private fun sec(x: Int, y: Int): Int {

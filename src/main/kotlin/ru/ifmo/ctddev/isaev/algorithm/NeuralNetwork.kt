@@ -1,19 +1,47 @@
 package ru.ifmo.ctddev.isaev.algorithm
 
-class NeuralNetwork(private val inputLayerSize: Int,
-                    private val hiddenLayerSize: Int,
-                    private val numLabels: Int,
-                    private val trainingData: List<TrainObject>) {
+import java.io.File
+import java.io.FileWriter
+import java.io.PrintWriter
 
-    private val theta1: Matrix
+abstract class NeuralNetwork {
+
+    abstract fun getTheta1(): Matrix
     // network params between input layer and hidden layer
 
-    private val theta2: Matrix
+    abstract fun getTheta2(): Matrix
     // network params between hidden layer and output layer
 
-    private val lambda = 0.0
+    val lambda = 0.0
 
-    private val gradientSteps = 50
+    val gradientSteps = 50
+
+    fun predictResult(example: DoubleArray): Int {
+        val a3 = predict(example, getTheta1(), getTheta2())
+        val result = DoubleArray(a3.rowCount)
+        for (i in 0..a3.rowCount - 1) {
+            result[i] = a3.getAt(i, 0)
+        }
+        return indMax(result)
+    }
+
+}
+
+class NewNetwork(private val inputLayerSize: Int,
+                 private val hiddenLayerSize: Int,
+                 private val numLabels: Int,
+                 trainingData: List<TrainObject>) : NeuralNetwork() {
+    override fun getTheta1(): Matrix {
+        return theta1
+    }
+
+    override fun getTheta2(): Matrix {
+        return theta2
+    }
+
+    private var theta1: Matrix
+
+    private var theta2: Matrix
 
     init {
         val initTheta1 = randomMatrix(hiddenLayerSize, inputLayerSize + 1)
@@ -29,6 +57,13 @@ class NeuralNetwork(private val inputLayerSize: Int,
         val X = pack(initTheta1, initTheta2)
         val (newX, fX, i) = fmincg(costFunction, X, gradientSteps)
 
+        PrintWriter(
+                FileWriter("./resources/nnParams${System.currentTimeMillis()}")
+        ).use { writer ->
+            newX.forEach {
+                writer.println(it)
+            }
+        }
         theta1 = reshape(newX.subArray(
                 0, hiddenLayerSize * (inputLayerSize + 1)),
                 hiddenLayerSize, (inputLayerSize + 1)
@@ -39,14 +74,39 @@ class NeuralNetwork(private val inputLayerSize: Int,
                 numLabels, (hiddenLayerSize + 1)
         )
     }
+}
 
-    fun predictResult(example: DoubleArray): Int {
-        val a3 = predict(example, theta1, theta2)
-        val result = DoubleArray(a3.rowCount)
-        for (i in 0..a3.rowCount - 1) {
-            result[i] = a3.getAt(i, 0)
-        }
-        return indMax(result)
+class PretrainedNetwork(inputLayerSize: Int,
+                        hiddenLayerSize: Int,
+                        numLabels: Int,
+                        datasetSuffix: String) : NeuralNetwork() {
+    override fun getTheta1(): Matrix {
+        return theta1
     }
 
+    override fun getTheta2(): Matrix {
+        return theta2
+    }
+
+    private var theta1: Matrix
+
+    private var theta2: Matrix
+
+    init {
+        val newX = File("./resources/nnParams$datasetSuffix")
+                .readLines()
+                .map { it.toDouble() }
+                .toDoubleArray()
+
+
+        theta1 = reshape(newX.subArray(
+                0, hiddenLayerSize * (inputLayerSize + 1)),
+                hiddenLayerSize, (inputLayerSize + 1)
+        )
+
+        theta2 = reshape(newX.subArray(
+                (hiddenLayerSize * (inputLayerSize + 1)), newX.size),
+                numLabels, (hiddenLayerSize + 1)
+        )
+    }
 }
