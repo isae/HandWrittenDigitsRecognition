@@ -30,7 +30,8 @@ abstract class NeuralNetwork {
 class NewNetwork(private val inputLayerSize: Int,
                  private val hiddenLayerSize: Int,
                  private val numLabels: Int,
-                 trainingData: List<TrainObject>) : NeuralNetwork() {
+                 trainingData: List<TrainObject>,
+                 storeDataset: Boolean) : NeuralNetwork() {
     override fun getTheta1(): Matrix {
         return theta1
     }
@@ -57,11 +58,13 @@ class NewNetwork(private val inputLayerSize: Int,
         val X = pack(initTheta1, initTheta2)
         val (newX, fX, i) = fmincg(costFunction, X, gradientSteps)
 
-        PrintWriter(
-                FileWriter("./resources/nnParams${System.currentTimeMillis()}")
-        ).use { writer ->
-            newX.forEach {
-                writer.println(it)
+        if (storeDataset) {
+            PrintWriter(
+                    FileWriter("./resources/nnParams${System.currentTimeMillis()}")
+            ).use { writer ->
+                newX.forEach {
+                    writer.println(it)
+                }
             }
         }
         theta1 = reshape(newX.subArray(

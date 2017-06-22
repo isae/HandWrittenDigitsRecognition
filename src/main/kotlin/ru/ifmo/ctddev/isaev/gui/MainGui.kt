@@ -15,7 +15,7 @@ class MainGui : JFrame("Digit recognition using neural network") {
     private val RESOLUTION = 28
     private val dataset = readDataSet()
     private var isPretrained = false
-    private val network = NewNetwork(784, 50, 10, dataset.subList(0, TRAIN_SIZE))
+    private val network = NewNetwork(784, 50, 10, dataset.subList(0, TRAIN_SIZE), true)
     private val pretrainedNetwork = PretrainedNetwork(784, 50, 10, "1498159394691")
     private var networkToUse: NeuralNetwork = network
 
